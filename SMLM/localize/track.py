@@ -28,13 +28,13 @@ class NNTracker:
             self.blobs_df = self.blobs_df.reset_index(drop=True)
 
         self.blobs_df = self.blobs_df.sort_values(['particle', 'frame'])
-        blobs_df_cut = self.blobs_df[['frame', 'x', 'y', 'particle']]
-        blobs_df_cut = blobs_df_cut.apply(pd.to_numeric)
-        im = tp.imsd(blobs_df_cut, mpp=self.pixel_size, fps=self.frame_rate, max_lagtime=np.inf)
-        self.blobs_df = self.dcoeff(self.blobs_df, im, self.divide_num)
+        #blobs_df_cut = self.blobs_df[['frame', 'x', 'y', 'particle']]
+        #blobs_df_cut = blobs_df_cut.apply(pd.to_numeric)
+        #im = tp.imsd(blobs_df_cut, mpp=self.pixel_size, fps=self.frame_rate, max_lagtime=np.inf)
+        #self.blobs_df = self.dcoeff(self.blobs_df, im, self.divide_num)
         self.blobs_df = self.blobs_df.apply(pd.to_numeric)
 
-        return self.blobs_df, im
+        return self.blobs_df
 
     def dcoeff(self,traj_df,im,divide_num):
 
