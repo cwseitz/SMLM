@@ -168,37 +168,7 @@ def anim_traj(df, tif,
                         box_alpha=scalebar_boxcolor_alpha,
                         )
 
-        # """
-        # ~~~~~~~~customized the colorbar, then add it~~~~~~~~
-        # """
-        if 'D' in df:
-            df, colormap = add_outside_colorbar(ax, df,
-                        data_col='D',
-                        cb_colormap='coolwarm',
-                        label_font_size=cb_fontsize,
-                        cb_min=cb_min,
-                        cb_max=cb_max,
-                        cb_major_ticker=cb_major_ticker,
-                        cb_minor_ticker=cb_minor_ticker,
-                        show_colorbar=show_colorbar,
-                        label_str=r'D (nm$^2$/s)',
-                        cb_pos=cb_pos,
-                        cb_tick_loc=cb_tick_loc,
-                        )
-        else:
-            df, colormap = add_outside_colorbar(ax, df,
-                        data_col='particle',
-                        cb_colormap='jet',
-                        label_font_size=cb_fontsize,
-                        cb_min=cb_min,
-                        cb_max=cb_max,
-                        cb_major_ticker=cb_major_ticker,
-                        cb_minor_ticker=cb_minor_ticker,
-                        show_colorbar=show_colorbar,
-                        label_str='particle',
-                        cb_pos=cb_pos,
-                        cb_tick_loc=cb_tick_loc,
-                        )
+
 
         # """
         # ~~~~~~~~Add traj num~~~~~~~~
@@ -218,47 +188,11 @@ def anim_traj(df, tif,
                     weight = 'bold',
                     fontname = fontname)
 
-        # """
-        # ~~~~~~~~Animate curr blob~~~~~~~~
-        # Backup code for color coded blob animation:
-        # for ind in curr_df.index:
-        #     partcle_color = colormap(curr_df.loc[ind, 'D_norm'])
-        #     y, x, r = curr_df.loc[ind, 'x'], curr_df.loc[ind, 'y'], curr_df.loc[ind, 'r']
-        #     ax.scatter(x, y,
-        #                 s=5,
-        #                 marker='^',
-        #                 c=[partcle_color])
-        #     if False:
-        #         c = plt.Circle((x,y), r, color=partcle_color,
-        #                        linewidth=1, fill=False)
-        #         ax.add_patch(c)
-        # """
+
         anno_blob(ax, curr_df, marker='^', markersize=3, plot_r=plot_r,
                     color=(0,0,1))
 
-        # """
-        # ~~~~~~~~Animate particle tail~~~~~~~~
-        # """
-        if show_tail:
-            particles = curr_df.particle.unique()
-            for particle_num in particles:
-                traj = df[df.particle == particle_num]
-                traj = traj[ traj['frame'].isin(range(i-tail_length, i+1)) ]
-                traj = traj.sort_values(by='frame')
 
-                # """
-                # ~~~~~~~~Animate cilia global trajectory if exists~~~~~~~~
-                # """
-                if 'x_global' in df.columns and 'y_global' in df.columns:
-                    ax.plot(traj['y_global'], traj['x_global'], '-',
-                            linewidth=0.5, color=(0,1,0))
-
-                if 'D_norm' in traj:
-                    ax.plot(traj['y'], traj['x'], linewidth=0.5,
-                    			color=colormap(traj['D_norm'].mean()))
-                else:
-                    ax.plot(traj['y'], traj['x'], linewidth=0.5,
-                    			color=colormap(traj['particle_norm'].mean()))
 
         # """
         # ~~~~~~~~Animate boundary~~~~~~~~
@@ -272,10 +206,6 @@ def anim_traj(df, tif,
                             markersize=1,
                             linewidth=0.5,
                             color=(0,1,0,1))
-
-
-
-
 
 
 
