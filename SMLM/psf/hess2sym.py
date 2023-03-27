@@ -1,13 +1,14 @@
 import sympy as sp
 
 # Define the variables
-x, y, x0, y0, sigma, N0, B0, eta, texp = sp.symbols('x y x0 y0 sigma N0 B0 eta texp')
+x, y, x0, y0, sigma, N0, B0, eta, texp, gain, var = sp.symbols('x y x0 y0 sigma N0 B0 eta texp gain var')
 
 # Define the functions
 Lambda_x = sp.erf((x + 1/2 - x0)/(sp.sqrt(2)*sigma)) - sp.erf((x - 1/2 - x0)/(sp.sqrt(2)*sigma))
 Lambda_y = sp.erf((y + 1/2 - y0)/(sp.sqrt(2)*sigma)) - sp.erf((y - 1/2 - y0)/(sp.sqrt(2)*sigma))
 L = 0.25*Lambda_x*Lambda_y
-Mu = N0*eta*texp*L + B0*eta*texp
+#Mu = eta*texp*(N0*L + B0)
+Mu = gain*eta*texp*(N0*L + B0) + var
 
 # Compute elements of the Hessian
 h_xx = Mu.diff(x0).diff(x0)
@@ -51,7 +52,7 @@ from numpy import pi\n
 from scipy.special import erf\n\n
 """
 
-code += "def hessian2(x, y, x0, y0, sigma, N0, B0, eta, texp):\n"
+code += "def hessian2(x, y, x0, y0, sigma, N0, B0, eta, texp, gain, var):\n"
 code += f"    h_xx = {h_xx}\n"
 code += f"    h_xy = {h_xy}\n"
 code += f"    h_xs = {h_xs}\n"

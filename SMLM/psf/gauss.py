@@ -7,7 +7,7 @@ from scipy.optimize import minimize
 from scipy.special import factorial
 
 class GaussianPSF:
-    def __init__(self,x0,y0,N0,B0,sigma,eta,texp,L,gain,rmu,rvar,depth=16):
+    def __init__(self,x0,y0,N0,B0,sigma,eta,texp,L,gain,offset,var,depth=16):
         self.x0 = x0
         self.y0 = y0
         self.L = L
@@ -15,8 +15,8 @@ class GaussianPSF:
         self.B0 = B0
         self.alpha = np.sqrt(2)*sigma
         self.gain = gain #ADU/e-
-        self.rmu = rmu
-        self.rvar = rvar
+        self.offset = offset
+        self.var = var
         self.texp = texp
         self.eta = eta
     def generate(self,depth=16,plot=False):
@@ -34,18 +34,18 @@ class GaussianPSF:
         #adu = adu.astype(np.int16)
         #adu[adu > max_adu] = max_adu
         if plot:
-            self.show(lam,electrons,noise,adu)
+            self.show(s,electrons,noise,adu)
         return adu
     def read_noise(self,adu):
-        noise = np.random.normal(self.rmu,np.sqrt(self.rvar),size=adu.shape)
+        noise = np.random.normal(self.offset,np.sqrt(self.var),size=adu.shape)
         adu += noise
         return adu,noise
     def show(self,lam,electrons,read_noise,adu):
         fig, ax = plt.subplots(2,2,figsize=(4,3))
         im1 = ax[0,0].imshow(lam,cmap='gray')
         ax[0,0].set_xticks([]);ax[0,0].set_yticks([])
-        ax[0,0].set_title(f'Sum={np.sum(lam)}')
-        plt.colorbar(im1, ax=ax[0,0], label=r'$\lambda$')
+        #ax[0,0].set_title(f'Sum={np.sum(lam)}')
+        plt.colorbar(im1, ax=ax[0,0], label=r'$\mu$')
         im2 = ax[0,1].imshow(electrons,cmap='gray')
         ax[0,1].set_xticks([]);ax[0,1].set_yticks([])
         plt.colorbar(im2, ax=ax[0,1], label=r'$e^{-}$')
@@ -54,7 +54,7 @@ class GaussianPSF:
         plt.colorbar(im3, ax=ax[1,0], label=r'$\xi$ (ADU)')
         im4 = ax[1,1].imshow(adu,cmap='gray')
         ax[1,1].set_xticks([]);ax[1,1].set_yticks([])
-        plt.colorbar(im4, ax=ax[1,1], label=r'ADU')
+        plt.colorbar(im4, ax=ax[1,1], label=r'H (ADU)')
         plt.tight_layout()
         plt.show()
 

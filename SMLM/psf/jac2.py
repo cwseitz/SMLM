@@ -1,13 +1,14 @@
 import numpy as np
 from scipy.special import erf
-import matplotlib.pyplot as plt
 
-def jacobian2(counts,X,Y,x0,y0,sigma,N0,B0,eta,texp):
+def jacobian2(adu,X,Y,x0,y0,sigma,N0,B0,eta,texp,gain,var):
     alpha = np.sqrt(2)*sigma
     lambdx = 0.5*(erf((X+0.5-x0)/alpha)-erf((X-0.5-x0)/alpha))
     lambdy = 0.5*(erf((Y+0.5-y0)/alpha)-erf((Y-0.5-y0)/alpha))
     lam = lambdx*lambdy
-    mu = eta*texp*(N0*lam + B0)
-    jac = 1 - (counts/mu)
+    #mu = eta*texp*(N0*lam + B0)
+    mu = gain*eta*texp*(N0*lam + B0) + var
+    #jac = gain - (gain*adu)/(gain*mu + var)
+    jac = 1 - adu/mu
     return jac.flatten()
 
