@@ -3,7 +3,6 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.init as init
 import torch.nn.functional as F
-from scipy.stats import kde
 
 def loss(x, out, mu, logvar, beta):
 
@@ -102,6 +101,7 @@ class ConvVAE(nn.Module):
         return mu, logvar, decoded
 
     def generate(self, n):
+        #z = torch.randn(n, self.latent_dim).cuda()
         z = torch.randn(n, self.latent_dim)
         samples = self.decode(z)
         return samples

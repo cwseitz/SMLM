@@ -3,7 +3,6 @@ from torchvision import datasets, transforms
 import matplotlib.pyplot as plt
 import torch
 import torchvision
-import cv2
 
 
 transform = transforms.Compose([transforms.ToTensor(), transforms.Resize(64), transforms.CenterCrop(64), transforms.Normalize((0.5,), (0.5,))])
@@ -13,8 +12,8 @@ loader = torch.utils.data.DataLoader(dataset, batch_size=32, shuffle=True)
 
 def show(x):
     img = x.data.cpu().permute(1, 2, 0).numpy() * 255
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    cv2.imshow(img)
+    plt.imshow(img)
+    plt.show()
 
 #training loop
 beta = 2
@@ -26,17 +25,16 @@ for epoch in range(100):
     for i, x in enumerate(loader):
         if len(x) == 2:
             x = x[0]
-
+        #x = x.cuda()
         mu, logvar, out = vae(x)
         rl, kl, l = loss(x, out, mu, logvar, beta)
-        print(f'Loss = {l}')
         opt.zero_grad()
         l.backward()
-        #opt.step()
+        opt.step()
 
-#        if i == 0:
-#            vae.eval()
-#            data = vae.generate(8)
-#            grid_img = torchvision.utils.make_grid(data, nrow=8, normalize=True)
-#            show(grid_img)
-#            vae.train()
+        if i == 0:
+            vae.eval()
+            data = vae.generate(8)
+            grid_img = torchvision.utils.make_grid(data, nrow=8, normalize=True)
+            show(grid_img)
+            vae.train()
