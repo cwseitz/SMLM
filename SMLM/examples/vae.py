@@ -23,6 +23,7 @@ opt = torch.optim.Adam(vae.parameters(), lr=5e-4)
 for epoch in range(100):
     print(f'Training epoch {epoch}...')
     for i, x in enumerate(loader):
+        print(f'Iteration: {i}')
         if len(x) == 2:
             x = x[0]
         #x = x.cuda()

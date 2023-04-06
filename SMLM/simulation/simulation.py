@@ -87,7 +87,7 @@ class Simulation:
                 movie[t,patchx:patchx+2*patch_hw,patchy:patchy+2*patch_hw] += adu
             movie[t] += np.random.poisson(lam=self.texp*self.eta*B0,size=(self.nx,self.ny))
             movie[t] = self.read_noise(movie[t])
-        return movie
+        return movie, state
                 
     def read_noise(self,adu):
         noise = np.random.normal(self.offset,np.sqrt(self.var),size=adu.shape)
@@ -108,7 +108,7 @@ class Simulation:
         plt.legend()
         plt.show()
 
-    def save(self,movie):
+    def save(self,movie,state):
         datapath = self.config['datapath']
         characters = string.ascii_lowercase + string.digits
         unique_id = ''.join(secrets.choice(characters) for i in range(8))
@@ -117,5 +117,5 @@ class Simulation:
         imsave(datapath+spath+'/'+spath+'.tif',movie,imagej=True)
         with open(datapath+spath+'/'+'config.json', 'w') as f:
             json.dump(self.config, f)
-        np.savez(datapath+spath+'/'+spath+'_ssa.npz')
+        np.savez(datapath+spath+'/'+spath+'_ssa.npz',state=state)
 
