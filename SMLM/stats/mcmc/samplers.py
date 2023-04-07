@@ -15,16 +15,20 @@ class MetropolisHastingsSSA(Sampler):
         self.cov = cov
         self.prop = multivariate_normal(mu,cov)
 
-    def negloglike(self,theta,data,end_time,Nreps=1000):
-        vals0, vals1 = data
-        vals0sim, vals1sim = self.ssa(theta,end_time,Nreps)
+    def negloglike(self,theta,X,end_time,dt,Nreps=1000):
+        #raw data
+        times0, times1 = lifetime4s(X,dt)
+        bins = np.arange(0,100,1)
+        vals0, vals1 = bin_lifetime(times0,times1,bins)
+        #simulation at current params
+        vals0sim, vals1sim = self.ssa(theta,end_time,dt,bins,Nreps=Nreps)
         vals0sim = vals0sim + 1e-8 #smooth pmf
         vals1sim = vals1sim + 1e-8 #smooth pmf
-        return None
-        #ll = np.sum(counts*np.log(pmf))
-        #return -1*ll
+        ll = np.sum(vals0*np.log(vals0sim))
+        return -1*ll
 
-    def ssa(self,theta,end_time,dt,Nreps=1000):
+    def ssa(self,theta,end_time,dt,bins,Nreps=1000):
+        print(f'SSA: end_time={end_time}, dt={dt}, Nreps={Nreps}')
         k12,k23,k34,k21,k31,k41 = theta
         nt = int(round(end_time/dt))
         state = np.zeros((Nreps,4,nt),dtype=np.bool)
@@ -36,8 +40,9 @@ class MetropolisHastingsSSA(Sampler):
             state[n,1,:] = x2_binned
             state[n,2,:] = x3_binned
             state[n,3,:] = x4_binned
-        time0, time1 = lifetime4s(state,dt)
-        vals0, vals1 = bin_lifetime(time0,time1,density=True)
+        times0, times1 = lifetime4s(state,dt)
+        vals0, vals1 = bin_lifetime(times0,times1,bins,density=True)
+        print('Done')
         return vals0, vals1  
           
     def get_betat(self,niter,tau=500):
@@ -69,10 +74,11 @@ class MetropolisHastingsSSA(Sampler):
         self.summarize(like_new,like_old,theta_new,theta_old,a,accept,n)
         return theta, like, accept
                 
-    def run(self,data,niter,theta0,tburn=500,end_time=1,skip=5):
+    def run(self,X,niter,theta0,dt,end_time,tburn=500,skip=5):
         theta = theta0
         thetas = np.zeros((len(theta),niter))
-        like = self.negloglike(theta0,data,end_time)
+        like = self.negloglike(theta0,X,end_time,dt)
+        print(like)
         betat = self.get_betat(niter)
         #acc = []
         #for n in range(niter):
