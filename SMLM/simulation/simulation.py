@@ -46,7 +46,7 @@ class Simulation:
         self.patch_hw = patch_hw
         self.r = int(self.texp/self.dt)
         
-    def switch(self):
+    def ssa(self):
         print('Simulating photoswitching with SSA...')
         k12,k23,k34,k21,k31,k41 = self.kvec
         nt = int(round(self.T/self.dt))
@@ -58,11 +58,12 @@ class Simulation:
             state[n,1,:] = x2_binned
             state[n,2,:] = x3_binned
             state[n,3,:] = x4_binned
+            print('\n')
         print('Done.')
-        return state    
+        return state  
         
     def simulate(self):
-        state = self.switch()
+        state = self.ssa()
         nt = int(round(self.T/self.texp))
         movie = np.zeros((nt,self.nx,self.ny),dtype=np.int16)
         x = np.arange(0,2*self.patch_hw); y = np.arange(0,2*self.patch_hw)

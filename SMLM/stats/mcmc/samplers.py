@@ -1,10 +1,85 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import multivariate_normal
+from SSA._SSA import photoswitch
+from SSA.utils import *
 
 class Sampler:
     def __init__(self):
         pass
+    
+class MetropolisHastingsSSA(Sampler):
+    def __init__(self,mu,cov):
+        super().__init__()
+        self.mu = mu
+        self.cov = cov
+        self.prop = multivariate_normal(mu,cov)
+
+    def negloglike(self,theta,data,end_time,Nreps=1000):
+        vals0, vals1 = data
+        vals0sim, vals1sim = self.ssa(theta,end_time,Nreps)
+        vals0sim = vals0sim + 1e-8 #smooth pmf
+        vals1sim = vals1sim + 1e-8 #smooth pmf
+        return None
+        #ll = np.sum(counts*np.log(pmf))
+        #return -1*ll
+
+    def ssa(self,theta,end_time,dt,Nreps=1000):
+        k12,k23,k34,k21,k31,k41 = theta
+        nt = int(round(end_time/dt))
+        state = np.zeros((Nreps,4,nt),dtype=np.bool)
+        for n in range(Nreps):
+            x1, x2, x3, x4, times = photoswitch([end_time,k12,k23,k34,k41,k31,k21])
+            t_bins, x1_binned, x2_binned, x3_binned, x4_binned =\
+            bin_ssa(times,x1,x2,x3,x4,dt,end_time)
+            state[n,0,:] = x1_binned
+            state[n,1,:] = x2_binned
+            state[n,2,:] = x3_binned
+            state[n,3,:] = x4_binned
+        time0, time1 = lifetime4s(state,dt)
+        vals0, vals1 = bin_lifetime(time0,time1,density=True)
+        return vals0, vals1  
+          
+    def get_betat(self,niter,tau=500):
+        iters = np.arange(0,niter,1)
+        betat = (1-np.exp(-iters/tau))*0.02
+        return betat
+              
+    def sample(self,theta_old,data,like_old,beta,n):
+        accept = True
+        dtheta = self.prop.rvs()
+        theta_new = theta_old + dtheta
+        
+        if np.any(theta_new < 0):
+            accept = False
+            self.summarize(None,like_old,theta_new,theta_old,None,accept,n)
+            return theta_old, like_old, accept
+
+        like_new = self.negloglike(theta_new,data,self.eta,self.texp)
+        a = np.exp(beta*(like_old-like_new))        
+        u = np.random.uniform(0,1)
+        if u <= a:
+            theta = theta_new
+            like = like_new
+        else:
+            accept = False
+            theta = theta_old
+            like = like_old
+            
+        self.summarize(like_new,like_old,theta_new,theta_old,a,accept,n)
+        return theta, like, accept
+                
+    def run(self,data,niter,theta0,tburn=500,end_time=1,skip=5):
+        theta = theta0
+        thetas = np.zeros((len(theta),niter))
+        like = self.negloglike(theta0,data,end_time)
+        betat = self.get_betat(niter)
+        #acc = []
+        #for n in range(niter):
+        #    theta, like, accept = self.sample(theta,data,like,betat[n],n)
+        #    acc.append(accept)
+        #    thetas[:,n] = theta
+        #return thetas
         
 class MetropolisHastingsPSF(Sampler):
     def __init__(self,negloglike,mu,cov,eta,texp):
