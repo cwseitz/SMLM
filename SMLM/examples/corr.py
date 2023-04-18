@@ -3,11 +3,23 @@ import matplotlib.pyplot as plt
 from skimage.io import imread
 from scipy.cluster.hierarchy import linkage, dendrogram
 from scipy.cluster.hierarchy import fcluster
+from numpy.fft import fft, ifft
+
+def block_spectra(x):
+
+    x_t = fft(x,axis=0)
+    #nt,npix = x.shape
+    #c = np.einsum('ij,kj->ikj',x_t.conj(),x_t)
+    #print(c.shape)
+
 
 def cluster(stack,mask):
 
     nt,nx,ny = stack.shape
     time_series = stack.reshape((nt,nx*ny))
+    block_spectra(time_series)
+    
+    """
     mask = mask.reshape((nx*ny))
     idx = np.argwhere(mask == 255).squeeze()
     time_series = time_series[:,idx]
@@ -27,6 +39,7 @@ def cluster(stack,mask):
     colored_image[idx,:] = colored_pixels
     colored_image = colored_image.reshape((nx,ny,3))
     return colored_image
+    """
 
 path = '/research3/shared/cwseitz/Data/STORM/230324_Hela_ buffer_j646_50pm overnight_high power_no405_10ms_01/'
 
@@ -39,10 +52,7 @@ mask = imread(path+maskfile)
 clustered_image = cluster(stack,mask)
 frame = stack[0] 
 
-# Set the transparency of the clustered image
-alpha = 0.3
-
-# Display the overlayed image using plt.imshow()
-plt.imshow(frame, cmap='gray')
-plt.imshow(clustered_image, alpha=alpha)
-plt.show()
+#alpha = 0.3
+#plt.imshow(frame, cmap='gray')
+#plt.imshow(clustered_image, alpha=alpha)
+#plt.show()
