@@ -49,6 +49,6 @@ niter = 100
 
 dp = DeconDP(adu,eta,texp,gain,var)
 prior_params = (xvec,yvec,sigma,n0r,B0)
-dp.run_mcmc(prior_params,niter,show=False)
-
+thetat = dp.run_mcmc(prior_params,niter,show=True)
+print(thetat)
 

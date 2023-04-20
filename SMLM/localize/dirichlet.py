@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 from SMLM.psf import *
 from SMLM.localize import *
 from numpy.random import beta
@@ -9,6 +10,7 @@ class DeconDP:
         self.adu = adu
         self.alpha = alpha
         self.cmos_params = (eta,texp,gain,var)
+        self.thetat = pd.DataFrame()
     def dirichlet_process(self,alpha):
         beta_sample = beta(1, alpha)
         weights = [beta_sample]
@@ -34,13 +36,15 @@ class DeconDP:
                 theta.append([x0,y0,sigma,n0*weight,b0])
         theta = np.array(theta).T
         if show:
-            self.show(theta)
+            self.show(theta,prior_params)
         return theta
         
-    def show(self,theta):
+    def show(self,theta,prior_params):
+        xvec,yvec,sigma,n0r,b0 = prior_params
         fig, ax = plt.subplots()
         ax.imshow(self.adu,cmap='gray')
         ax.scatter(theta[1,:],theta[0,:],color='red',marker='x')
+        ax.scatter(yvec,xvec,color='blue',marker='x')
         plt.show()
         
     def run_mcmc(self,prior_params,niter,show=False): 
@@ -51,7 +55,12 @@ class DeconDP:
         for n in range(niter):
             theta_new = self.prior(prior_params,show=show)
             theta_new, like, accept = self.accrej(theta_old,theta_new,like_old,data,show=show)
+            theta_new_ = pd.DataFrame({'x0':theta_new[0,:],'y0':theta_new[1,:],'sigma':theta_new[2,:],
+                                       'n0':theta_new[3,:],'b0':theta_new[4,:]})
+            theta_new_ = theta_new_.assign(iteration=n,K=theta_new.shape[1])
+            self.thetat = pd.concat([self.thetat,theta_new_])
             acc.append(accept)
+        return self.thetat
 
         
     def summarize(self,like_new,like_old,ratio,accept):
@@ -62,7 +71,7 @@ class DeconDP:
         print(f'Accepted {accept}\n')
 
 
-    def accrej(self,theta_old,theta_new,like_old,data,beta=1.0,show=False):
+    def accrej(self,theta_old,theta_new,like_old,data,beta=1e-4,show=False):
         accept = True
         like_new = mixloglike(theta_new,data,*self.cmos_params)
         a = np.exp(beta*(like_old-like_new))        
