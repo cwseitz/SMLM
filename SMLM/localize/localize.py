@@ -64,18 +64,7 @@ class LOGDetector:
        if ax is None:
            fig, ax = plt.subplots(figsize=(6,6))
        ax.imshow(self.X, cmap="gray", aspect='equal')
-       anno_blob(ax, self.blobs_df, marker=self.blob_marker, markersize=self.blob_markersize,
-               plot_r=self.plot_r, color=self.blob_markercolor)
-       ax.text(0.95,
-               0.05,
-               "Foci_num: %d" %(len(self.blobs_df)),
-               horizontalalignment='right',
-               verticalalignment='bottom',
-               fontsize = 12,
-               color = (0.5, 0.5, 0.5, 0.5),
-               transform=ax.transAxes,
-               weight = 'bold',
-               )
+       ax.scatter(self.blobs_df['y'],self.blobs_df['x'],color='red',marker='x')
        if self.show_scalebar:
            font = {'family': 'arial', 'weight': 'bold','size': 16}
            scalebar = ScaleBar(self.pixel_size, 'um', location = 'upper right',

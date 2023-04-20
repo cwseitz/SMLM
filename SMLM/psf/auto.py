@@ -4,8 +4,6 @@ from autograd import grad, jacobian, hessian
 from autograd.scipy.special import erf
 from scipy.optimize import minimize
 from scipy.special import factorial
-np.set_printoptions(suppress=True)
-np.random.seed(10)
 
 
 def negloglike_fixed(adu,eta,texp,gain,var):

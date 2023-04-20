@@ -37,7 +37,7 @@ class Frame:
             self.adu += adu
         if plot:
             self.show(self.rate,self.electrons,self.read_noise,self.adu)
-        return adu
+        return self.adu
     def show(self,rate,electrons,read_noise,adu):
         fig, ax = plt.subplots(2,2,figsize=(8,8))
         im1 = ax[0,0].imshow(rate,cmap='gray')
