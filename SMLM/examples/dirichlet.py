@@ -45,10 +45,14 @@ spots = detector.detect()
 xvec = spots['x'].to_numpy()
 yvec = spots['y'].to_numpy() 
 n0r = 1000
-niter = 100
+niter = 1000
 
 dp = DeconDP(adu,eta,texp,gain,var)
 prior_params = (xvec,yvec,sigma,n0r,B0)
-thetat = dp.run_mcmc(prior_params,niter,show=True)
+start = time.time()
+thetat = dp.run_mcmc(prior_params,niter,show=False)
+end = time.time()
+runtime = end - start
+print(f'MCMC Runtime: {runtime}')
 print(thetat)
 
