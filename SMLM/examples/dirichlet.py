@@ -45,8 +45,10 @@ spots = detector.detect()
 xvec = spots['x'].to_numpy()
 yvec = spots['y'].to_numpy() 
 n0r = 1000
+niter = 100
 
 dp = DeconDP(adu,eta,texp,gain,var)
-dp.run_mcmc(xvec,yvec,sigma,n0r,B0,show=True)
+prior_params = (xvec,yvec,sigma,n0r,B0)
+dp.run_mcmc(prior_params,niter,show=False)
 
 
