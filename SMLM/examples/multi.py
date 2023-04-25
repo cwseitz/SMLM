@@ -28,7 +28,7 @@ N0 = 1000
 B0 = 20
 cmos_params = [eta,texp,gain,var]
 
-nspots = 3
+nspots = 7
 theta0 = np.zeros((5,nspots))
 theta0[0,:] = np.random.normal(L/2,2.0,size=nspots)
 theta0[1,:] = np.random.normal(L/2,2.0,size=nspots)
@@ -39,3 +39,5 @@ theta0[4,:] = B0
 frame = Frame(theta0,eta,texp,L,gain,offset,var)
 adu = frame.generate(plot=True)
 hess = multihess(theta0,adu,cmos_params)
+plt.imshow(hess)
+plt.show()

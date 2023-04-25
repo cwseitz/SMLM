@@ -34,14 +34,14 @@ def get_errors(theta,adu,eta,texp,gain,var,plot=False):
 
 def multihess(theta,adu,cmos_params):
     lx, ly = adu.shape
-    x0,y0,sigma,N0,B0 = theta
+    ntheta, nspots = theta.shape
     X,Y = np.meshgrid(np.arange(0,lx),np.arange(0,ly))
     J1 = jac1mul(X,Y,theta,*cmos_params)
     H1 = hess1mul(adu,X,Y,theta,*cmos_params)
     J2 = jac2mul(adu,X,Y,theta,*cmos_params)
     H2 = hess2mul(X,Y,theta,*cmos_params)
-    Ja = J1.reshape((5,lx**2))
-    Hb = H2.reshape((5,5,lx**2))
+    Ja = J1.reshape((ntheta*nspots,lx**2))
+    Hb = H2.reshape((ntheta*nspots,ntheta*nspots,lx**2))
     A = Ja @ H1 @ Ja.T 
     B = np.sum(Hb*J2[np.newaxis, np.newaxis, :],axis=-1)
     H = A + B
