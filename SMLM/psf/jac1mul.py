@@ -1,5 +1,5 @@
 import numpy as np
-from jac1 import jacobian1
+from .jac1 import jacobian1
 
 def jac1mul(x,y,theta,eta,texp,gain,var):
     ntheta,nspots = theta.shape

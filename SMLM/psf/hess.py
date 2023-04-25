@@ -6,6 +6,10 @@ from .hess1 import hessian1
 from .hess2 import hessian2 
 from .jac1 import jacobian1
 from .jac2 import jacobian2
+from .jac1mul import *
+from .jac2mul import *
+from .hess1mul import *
+from .hess2mul import *
 
 def get_errors(theta,adu,eta,texp,gain,var,plot=False):
     ntheta, nspots = theta.shape
