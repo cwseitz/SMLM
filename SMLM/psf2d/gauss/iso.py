@@ -6,7 +6,7 @@ from autograd.scipy.special import erf
 from scipy.optimize import minimize
 from scipy.special import factorial
 
-class Frame:
+class FrameIso:
     def __init__(self,theta,eta,texp,L,gain,offset,var,depth=16):
         self.theta = theta
         self.gain = gain #ADU/e-
@@ -20,21 +20,20 @@ class Frame:
         self.electrons = np.zeros((self.L,self.L))
         self.rate = np.zeros((self.L,self.L))
     def generate(self,depth=16,plot=False):
-        ntheta, ns = self.theta.shape
-        for n in range(ns):
-            x0,y0,sigma,N0 = self.theta[:,n]
-            alpha = np.sqrt(2)*sigma
-            x = np.arange(0,self.L); y = np.arange(0,self.L)
-            X,Y = np.meshgrid(x,y)
-            lambdx = 0.5*(erf((X+0.5-x0)/alpha)-erf((X-0.5-x0)/alpha))
-            lambdy = 0.5*(erf((Y+0.5-y0)/alpha)-erf((Y-0.5-y0)/alpha))
-            lam = lambdx*lambdy
-            rate = self.texp*self.eta*N0*lam
-            self.rate += rate
-            electrons = np.random.poisson(lam=rate) #shot noise
-            self.electrons += electrons
-            adu = self.gain*electrons
-            self.adu += adu
+        ntheta = self.theta.shape
+        x0,y0,sigma,N0 = self.theta
+        alpha = np.sqrt(2)*sigma
+        x = np.arange(0,self.L); y = np.arange(0,self.L)
+        X,Y = np.meshgrid(x,y)
+        lambdx = 0.5*(erf((X+0.5-x0)/alpha)-erf((X-0.5-x0)/alpha))
+        lambdy = 0.5*(erf((Y+0.5-y0)/alpha)-erf((Y-0.5-y0)/alpha))
+        lam = lambdx*lambdy
+        rate = self.texp*self.eta*N0*lam
+        self.rate += rate
+        electrons = np.random.poisson(lam=rate) #shot noise
+        self.electrons += electrons
+        adu = self.gain*electrons
+        self.adu += adu
         if plot:
             self.show(self.rate,self.electrons,self.read_noise,self.adu)
         return self.adu

@@ -2,7 +2,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torch
 from scipy.special import erf
-from .frame import Frame
 
 def loglike(adu,eta,texp,gain,var):
     lx, ly = adu.shape

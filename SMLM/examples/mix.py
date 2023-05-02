@@ -26,15 +26,19 @@ eta = 0.8 #quantum efficiency
 N0 = 1000
 cmos_params = [eta,texp,gain,var]
 
-nspots = 7
+nspots = 5
 theta0 = np.zeros((4,nspots))
 theta0[0,:] = np.random.normal(L/2,2.0,size=nspots)
 theta0[1,:] = np.random.normal(L/2,2.0,size=nspots)
 theta0[2,:] = sigma
 theta0[3,:] = N0
 
-frame = Frame(theta0,eta,texp,L,gain,offset,var)
+frame = FrameMix(theta0,eta,texp,L,gain,offset,var)
 adu = frame.generate(plot=True)
+
+fig, ax = plt.subplots(1,2)
+hess = hessmix_auto(theta0,adu,cmos_params)
+ax[0].imshow(hess,cmap='gray')
 hess = hessmix(theta0,adu,cmos_params)
-plt.imshow(hess)
+ax[1].imshow(hess,cmap='gray')
 plt.show()

@@ -16,13 +16,13 @@ def negloglike_fixed(adu,eta,texp,gain,var):
         lamdy = 0.5*(erf((Y+0.5-y0)/alpha) - erf((Y-0.5-y0)/alpha))
         lam = lamdx*lamdy
         mu = eta*texp*N0*lam
-        stirling = adu*np.log(adu) - adu
+        stirling = adu*np.log(adu+1e-8) - adu
         nll = stirling + gain*mu + var - adu*np.log(gain*mu + var)
         nll = np.sum(nll)
         return nll
     return negloglike_theta
 
-def hessian_autograd(theta,adu,eta,texp,gain,var):
+def hessiso_auto(theta,adu,eta,texp,gain,var):
     negloglike_theta = negloglike_fixed(adu,eta,texp,gain,var)
     hessian_ = hessian(negloglike_theta)
     hess = hessian_(theta)

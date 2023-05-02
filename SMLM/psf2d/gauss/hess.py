@@ -30,7 +30,7 @@ def get_errors(theta,adu,eta,texp,gain,var,plot=False):
    
 def hessiso(theta,adu,eta,texp,gain,var):
     lx, ly = adu.shape
-    ntheta, nspots = theta.shape
+    ntheta = len(theta)
     x0,y0,sigma,N0 = theta
     X,Y = np.meshgrid(np.arange(0,lx),np.arange(0,ly))
     J1 = jacobian1(X,Y,x0,y0,sigma,N0,eta,texp,gain,var)
