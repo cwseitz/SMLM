@@ -7,7 +7,7 @@ from scipy.optimize import minimize
 from scipy.special import factorial
 
 class FrameIso:
-    def __init__(self,theta,eta,texp,L,gain,offset,var,depth=16):
+    def __init__(self,theta,eta,texp,L,gain,offset,var,B0,depth=16):
         self.theta = theta
         self.gain = gain #ADU/e-
         self.offset = offset
@@ -15,6 +15,7 @@ class FrameIso:
         self.texp = texp
         self.eta = eta
         self.L = L
+        self.B0 = B0
         self.adu = np.zeros((self.L,self.L))
         self.read_noise = np.random.normal(self.offset,np.sqrt(self.var),size=self.adu.shape)
         self.electrons = np.zeros((self.L,self.L))
@@ -34,8 +35,11 @@ class FrameIso:
         self.electrons += electrons
         adu = self.gain*electrons
         self.adu += adu
+        self.adu += self.read_noise
+        self.adu += self.B0
         if plot:
             self.show(self.rate,self.electrons,self.read_noise,self.adu)
+        
         return self.adu
     def show(self,rate,electrons,read_noise,adu):
         fig, ax = plt.subplots(2,2,figsize=(8,8))

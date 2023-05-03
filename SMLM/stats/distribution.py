@@ -38,8 +38,8 @@ class PoissonNormal(Distribution):
     def sample(self,nsamples):
         samples = np.zeros((nsamples,))
         for n in range(nsamples):
-            x = self.p.rvs(size=1)
-            y = self.g.rvs(size=1)
+            x = self.p.rvs(size=1) #photoelectrons
+            y = self.g.rvs(size=1) #readout noise
             samples[n] = x + y
         return samples
     def get_pmf(self,x):
@@ -60,16 +60,10 @@ class PoissonNormalApproximate(Distribution):
         self.mu_norm=mu_norm
         self.mu_psn=mu_psn
         self.sigma_norm=sigma_norm
-    def sample(self,nsamples):
-        samples = np.zeros((nsamples,))
-        for n in range(nsamples):
-            x = self.p.rvs(size=1)
-            y = self.g.rvs(size=1)
-            samples[n] = x + y - self.mu_norm + self.sigma_norm**2
-        return samples
     def get_pmf(self,x):
         papprox = poisson(self.mu_psn+self.sigma_norm**2)
         pmf = papprox.pmf(x)
+        pmf = pmf/np.sum(pmf)
         return pmf
 
 class Normal(Distribution):

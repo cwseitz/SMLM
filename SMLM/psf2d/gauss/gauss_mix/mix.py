@@ -35,6 +35,7 @@ class FrameMix:
             self.electrons += electrons
             adu = self.gain*electrons
             self.adu += adu
+        self.adu = self.adu + self.read_noise
         if plot:
             self.show(self.rate,self.electrons,self.read_noise,self.adu)
         return self.adu
