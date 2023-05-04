@@ -19,7 +19,7 @@ class FrameIso:
         self.adu = np.zeros((self.L,self.L))
         self.read_noise = np.random.normal(self.offset,np.sqrt(self.var),size=self.adu.shape)
         self.electrons = np.zeros((self.L,self.L))
-        self.rate = np.zeros((self.L,self.L))
+        self.mu = np.zeros((self.L,self.L))
     def generate(self,depth=16,plot=False):
         ntheta = self.theta.shape
         x0,y0,sigma,N0 = self.theta
@@ -29,17 +29,16 @@ class FrameIso:
         lambdx = 0.5*(erf((X+0.5-x0)/alpha)-erf((X-0.5-x0)/alpha))
         lambdy = 0.5*(erf((Y+0.5-y0)/alpha)-erf((Y-0.5-y0)/alpha))
         lam = lambdx*lambdy
-        rate = self.texp*self.eta*N0*lam
-        self.rate += rate
-        electrons = np.random.poisson(lam=rate) #shot noise
+        mu = self.texp*self.eta*N0*lam
+        self.mu += mu
+        electrons = np.random.poisson(lam=self.mu) #shot noise
         self.electrons += electrons
         adu = self.gain*electrons
         self.adu += adu
         self.adu += self.read_noise
         self.adu += self.B0
         if plot:
-            self.show(self.rate,self.electrons,self.read_noise,self.adu)
-        
+            self.show(self.mu,self.electrons,self.read_noise,self.adu)
         return self.adu
     def show(self,rate,electrons,read_noise,adu):
         fig, ax = plt.subplots(2,2,figsize=(8,8))
