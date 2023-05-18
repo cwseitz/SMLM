@@ -88,14 +88,16 @@ class Generator2D:
     def segment(self,gtmat,upsample=1):
         nt = int(round(self.T/self.texp))
         npix = int(upsample*self.nx)
-        mask = np.zeros((nt,npix,npix),dtype=np.bool)
+        mask = np.zeros((nt,2,npix,npix),dtype=np.bool)
         for n in range(nt):
            rows = gtmat[gtmat[:,0] == n]
            xpos = rows[:,2]
            ypos = rows[:,3]
            rr = [[0,self.nx],[0,self.nx]]
            vals, xedges, yedges = np.histogram2d(xpos,ypos,bins=npix,range=rr,density=False)
-           mask[n] = vals
+           vals[vals > 1] = 1
+           mask[n,0,:,:] = vals
+           mask[n,1,:,:] = np.abs(vals-1)
         return mask
    
     def shot_noise(self,rate):
@@ -123,6 +125,7 @@ class Generator2D:
         imsave(datapath+spath+'/'+spath+'-mask.tif',mask,imagej=True)
         with open(datapath+spath+'/'+'config.json', 'w') as f:
             json.dump(self.config, f)
+        np.savez(datapath+spath+'/'+spath+'-mask.npz',mask=mask)
         np.savez(datapath+spath+'/'+spath+'_ssa.npz',state=state)
         np.savez(datapath+spath+'/'+spath+'_gtmat.npz',gtmat=gtmat)
 

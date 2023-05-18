@@ -23,6 +23,7 @@ logger = config.get_logger('train')
 data_loader = config.init_obj('data_loader', data_loaders)
 valid_data_loader = None
 
+
 model = config.init_obj('arch', module_arch)
 logger.info(model)
 
@@ -47,4 +48,5 @@ trainer = UNETTrainer(model, criterion, metrics, optimizer,
                       
                       
 trainer.train()
+
 

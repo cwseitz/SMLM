@@ -14,32 +14,7 @@ from torch import nn
 from torch.utils.data import DataLoader
 from torchvision import datasets, transforms
 
-def unet_weight_map(y, wc=None, w0=10, sigma=5):
-
-    """
-    Generate weight maps as specified in the U-Net paper
-    for boolean mask.
-    
-    "U-Net: Convolutional Networks for Biomedical Image Segmentation"
-    https://arxiv.org/pdf/1505.04597.pdf
-    
-    Parameters
-    ----------
-    mask: Numpy array
-        2D array of shape (image_height, image_width) representing binary mask
-        of objects.
-    wc: dict
-        Dictionary of weight classes.
-    w0: int
-        Border weight parameter.
-    sigma: int
-        Border width parameter.
-    Returns
-    -------
-    Numpy array
-        Training weights. A 2D array of shape (image_height, image_width).
-    """
-    
+def unet_weight_map(y, wc=None, w0=10, sigma=5):  
     labels = label(y)
     no_labels = labels == 0
     label_ids = sorted(np.unique(labels))[1:]
@@ -76,21 +51,11 @@ def plot(output,target):
     ax[2].imshow(target[0,0,:,:].detach().cpu().numpy(),cmap='gray')
     plt.show()
 
-def CrossEntropyLoss(output, target, diagnostic=False):
-    #plot(output,target)
+def CrossEntropyLoss(output,target):
+    plot(output,target)
     return F.cross_entropy(output,target)
 
-def WeightedCrossEntropyLoss(output, target, weighted=False, diagnostic=False):
-    """
-    Reduces output to a single loss value by averaging losses at each element
-    by default in (PyTorch 1.11.0)
-    
-    ***Note: this function operates on non-normalized probabilities
-    (there is no need for a softmax function, it is included in the loss).
-    
-    At testing time or when computing metrics, you will need to implement a softmax layer.
-    """
-    
+def WeightedCrossEntropyLoss(output, target, weighted=False, diagnostic=False):    
     wc = {
     0: 0, # background
     1: 0  # objects
