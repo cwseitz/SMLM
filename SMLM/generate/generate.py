@@ -4,13 +4,14 @@ import os
 import secrets
 import string
 import json
+
 from skimage.io import imsave
 from scipy.special import erf
 from scipy.optimize import minimize
 from scipy.special import factorial
 
-from SSA._SSA import photoswitch
-from SSA.utils import bin_ssa
+from .._ssa import photoswitch
+from .._ssa.utils import bin_ssa
 
 class Generator:
     def __init__(self,config,patch_hw=10):

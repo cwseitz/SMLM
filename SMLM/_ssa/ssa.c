@@ -5,11 +5,9 @@
 #include <gsl_rng.h>
 #include <sys/time.h>
 #include <complex.h>
-#include "telegraph.c"
 #include "switch.c"
 
 static PyMethodDef SSAMethods[] = {
-    {"telegraph_constant", telegraph_constant, METH_VARARGS, "SSA in C"},
     {"photoswitch", photoswitch, METH_VARARGS, "SSA in C"},
     {NULL, NULL, 0, NULL},
 };
