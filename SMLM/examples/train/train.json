@@ -1,23 +1,22 @@
 {
-		"name": "UNetModel",
+		"name": "SMLModel",
 		"n_gpu": 0,
 
 		"arch": {
-				"type": "UNetModel",
+				"type": "SMLModel",
 				"args": {
 		"n_channels": 1,
-		"n_classes": 3
+		"n_classes": 2
 	}
 		},
 		"data_loader": {
-				"type": "U2OSDataLoader",
+				"type": "SMLMDataLoader",
 				"args":{
-						"data_dir": "data/",
+						"data_dir": "/home/cwseitz/Desktop/test/",
 						"batch_size": 5,
 						"shuffle": true,
 						"validation_split": 0.2,
-						"num_workers": 2,
-						"crop_dim": 256
+						"num_workers": 2
 				}
 		},
 		"optimizer": {
@@ -44,11 +43,9 @@
 		},
 		"trainer": {
 				"epochs": 50,
-
 				"save_dir": "saved/",
 				"save_period": 1,
 				"verbosity": 2,
-
 				"monitor": "min val_loss",
 				"early_stop": 10,
 				"tensorboard": true
