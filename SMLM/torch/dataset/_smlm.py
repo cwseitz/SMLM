@@ -1,27 +1,27 @@
 import numpy as np
 from os.path import join
+from glob import glob
+from skimage.io import imread
 from torch.utils.data import Dataset
 from SMLM.generate import Generator
 
 class SMLMDataset(Dataset):
-	def __init__(self,dir):
-		self.raw_dir = dir + 'raw'
-		self.tgt_dir = dir + 'tgt'
+	def __init__(self,dir,transform=None,target_transform=None):
+		self.dir = dir
+		self.transform = transform
+		self.target_transform = target_transform
 	def __len__(self):
-		return len(os.listdir(self.raw_dir))
+		return len(glob(self.dir+'*.tif'))
 	def __getitem__(self, idx):
-		files = os.listdir(self.raw_dir)
+		files = glob(self.dir+'*.tif')
 		f = files[idx]; fname = f.split('.')[0]
-		raw_path = os.path.join(self.raw_dir, f)
-		tgt_path = os.path.join(self.raw_dir, fname + '.npz')
-		stack = imread(img_path).astype(np.float64)
-		target = np.load(tgt_path)['arr_0']
+		raw_path = join(self.dir, f)
+		tgt_path = join(self.dir, fname + '_gtmat.npz')
+		stack = imread(raw_path)
+		target = np.load(tgt_path)['gtmat']
 		if self.transform:
-			image = self.transform(image)
+			image = self.transform(stack)
+		if self.target_transform:
+			targt = self.target_transform(target)
 		return image, target
-	def generate(self,n):
-		os.makedirs(self.raw_dir, exist_ok=True)
-		os.makedirs(self.tgt_dir, exist_ok=True)
-		for i in range(n):
-		    generator = Generator()
 

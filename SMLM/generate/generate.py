@@ -56,6 +56,7 @@ class Generator:
         state = self.ssa()
         nt = int(round(self.T/self.texp))
         movie = np.zeros((nt,self.nx,self.ny),dtype=np.int16)
+        gtmat = []
         x = np.arange(0,2*self.patch_hw); y = np.arange(0,2*self.patch_hw)
         X,Y = np.meshgrid(x,y)
         patch_hw = self.patch_hw
@@ -64,27 +65,30 @@ class Generator:
             for n in range(self.nparticles):
                 x0,y0,sigma,N0 = self.theta[:,n]
                 patchx, patchy = int(round(x0))-patch_hw, int(round(y0))-patch_hw
-                x0 -= patchx; y0 -= patchy
+                x0p = x0-patchx; y0p = y0-patchy
                 alpha = np.sqrt(2)*sigma
-                lambdx = 0.5*(erf((X+0.5-x0)/alpha)-erf((X-0.5-x0)/alpha))
-                lambdy = 0.5*(erf((Y+0.5-y0)/alpha)-erf((Y-0.5-y0)/alpha))
+                lambdx = 0.5*(erf((X+0.5-x0p)/alpha)-erf((X-0.5-x0p)/alpha))
+                lambdy = 0.5*(erf((Y+0.5-y0p)/alpha)-erf((Y-0.5-y0p)/alpha))
                 lam = lambdx*lambdy
                 fon = state[n,0,t*self.r:self.r*(t+1)] #fraction of exposure time the particle was ON
                 fon = np.sum(fon)/len(fon)
+                if fon > 0:
+                    gtmat.append([t,fon,x0,y0])
                 s = self.texp*self.eta*(N0*lam*fon)
                 electrons = np.random.poisson(lam=s)
                 adu = self.gain[patchx:patchx+2*patch_hw,patchy:patchy+2*patch_hw]*electrons
                 adu = adu.astype(np.int16)
                 movie[t,patchx:patchx+2*patch_hw,patchy:patchy+2*patch_hw] += adu
             movie[t] = self.read_noise(movie[t])
-        return movie, state
+        gtmat = np.array(gtmat)
+        return movie, state, gtmat
                 
     def read_noise(self,adu):
         noise = np.random.normal(self.offset,np.sqrt(self.var),size=adu.shape)
         adu += noise.astype(np.int16)
         return adu
         
-    def save(self,movie,state):
+    def save(self,movie,state,gtmat):
         datapath = self.config['datapath']
         characters = string.ascii_lowercase + string.digits
         unique_id = ''.join(secrets.choice(characters) for i in range(8))
@@ -94,4 +98,5 @@ class Generator:
         with open(datapath+spath+'/'+'config.json', 'w') as f:
             json.dump(self.config, f)
         np.savez(datapath+spath+'/'+spath+'_ssa.npz',state=state)
+        np.savez(datapath+spath+'/'+spath+'_gtmat.npz',gtmat=gtmat)
 

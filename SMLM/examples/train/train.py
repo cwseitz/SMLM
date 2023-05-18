@@ -5,23 +5,25 @@ import json
 import numpy as np
 import matplotlib.pyplot as plt
 
-import SMLM.torch.data_loaders as data_loaders
+import SMLM.torch.loaders as data_loaders
 import SMLM.torch.train.loss as module_loss
 import SMLM.torch.train.metrics as module_metric
-import SMLM.torch.torch_models as module_arch
+import SMLM.torch.models as module_arch
 
 from SMLM.torch.utils import ConfigParser
 from SMLM.torch.utils import prepare_device
 from SMLM.torch.train import UNETTrainer
 
-config_path = 'unet.json'
+config_path = 'train.json'
 file = open(config_path)
 config = json.load(file)
 config = ConfigParser(config)
 
 logger = config.get_logger('train')
 data_loader = config.init_obj('data_loader', data_loaders)
-valid_data_loader = data_loader.split_validation()
+for img,target in data_loader.dataset:
+    print(img,target)
+#valid_data_loader = data_loader.split_validation()
 
 """
 model = config.init_obj('arch', module_arch)
