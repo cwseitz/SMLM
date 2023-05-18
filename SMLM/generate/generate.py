@@ -13,8 +13,8 @@ from scipy.special import factorial
 from SSA._SSA import photoswitch
 from .bin_ssa import bin_ssa 
 
-class Generator:
-    def __init__(self,config,patch_hw=10):
+class Generator2D:
+    def __init__(self,config):
         self.config = config
         self.particles = config['particles']
         self.dt = config['dt']
@@ -37,7 +37,6 @@ class Generator:
         self.theta[2,:] = self.sigma
         self.theta[3,:] = self.N0
         self.nparams,self.nparticles = self.theta.shape
-        self.patch_hw = patch_hw
         self.r = int(self.texp/self.dt)
     def ssa(self):
         k12,k23,k34,k21,k31,k41 = self.kvec
@@ -54,12 +53,19 @@ class Generator:
         
     def generate(self):
         state = self.ssa()
+        rate, gtmat = self.rate_map(state)
+        electrons = self.shot_noise(rate)           
+        adu = self.gain*electrons
+        adu = self.read_noise(adu)
+        adu = adu.astype(np.int16) #digitize
+        return adu, state, gtmat
+
+    def rate_map(self,state,patch_hw=10):
         nt = int(round(self.T/self.texp))
-        movie = np.zeros((nt,self.nx,self.ny),dtype=np.int16)
-        gtmat = []
-        x = np.arange(0,2*self.patch_hw); y = np.arange(0,2*self.patch_hw)
+        x = np.arange(0,2*patch_hw); y = np.arange(0,2*patch_hw)
         X,Y = np.meshgrid(x,y)
-        patch_hw = self.patch_hw
+        rate_map = np.zeros((nt,self.nx,self.ny),dtype=np.float32)
+        gtmat = []
         for t in range(nt):
             print(f'Simulating frame {t}')
             for n in range(self.nparticles):
@@ -70,31 +76,51 @@ class Generator:
                 lambdx = 0.5*(erf((X+0.5-x0p)/alpha)-erf((X-0.5-x0p)/alpha))
                 lambdy = 0.5*(erf((Y+0.5-y0p)/alpha)-erf((Y-0.5-y0p)/alpha))
                 lam = lambdx*lambdy
-                fon = state[n,0,t*self.r:self.r*(t+1)] #fraction of exposure time the particle was ON
+                fon = state[n,0,t*self.r:self.r*(t+1)]
                 fon = np.sum(fon)/len(fon)
+                mu = fon*self.texp*self.eta*N0*lam
+                rate_map[t,patchx:patchx+2*patch_hw,patchy:patchy+2*patch_hw] += mu
                 if fon > 0:
-                    gtmat.append([t,fon,x0,y0])
-                s = self.texp*self.eta*(N0*lam*fon)
-                electrons = np.random.poisson(lam=s)
-                adu = self.gain[patchx:patchx+2*patch_hw,patchy:patchy+2*patch_hw]*electrons
-                adu = adu.astype(np.int16)
-                movie[t,patchx:patchx+2*patch_hw,patchy:patchy+2*patch_hw] += adu
-            movie[t] = self.read_noise(movie[t])
+                    gtmat.append([t,fon,x0,y0])     
         gtmat = np.array(gtmat)
-        return movie, state, gtmat
+        return rate_map, gtmat
+        
+    def segment(self,gtmat,upsample=1):
+        nt = int(round(self.T/self.texp))
+        npix = int(upsample*self.nx)
+        mask = np.zeros((nt,npix,npix),dtype=np.bool)
+        for n in range(nt):
+           rows = gtmat[gtmat[:,0] == n]
+           xpos = rows[:,2]
+           ypos = rows[:,3]
+           rr = [[0,self.nx],[0,self.nx]]
+           vals, xedges, yedges = np.histogram2d(xpos,ypos,bins=npix,range=rr,density=False)
+           mask[n] = vals
+        return mask
+   
+    def shot_noise(self,rate):
+        nt,nx,ny = rate.shape
+        electrons = np.zeros_like(rate)
+        for n in range(nt):
+            electrons[n] = np.random.poisson(lam=rate[n]) 
+        return electrons
                 
     def read_noise(self,adu):
-        noise = np.random.normal(self.offset,np.sqrt(self.var),size=adu.shape)
-        adu += noise.astype(np.int16)
+        nt,nx,ny = adu.shape
+        for n in range(nt):
+            noise = np.random.normal(self.offset,np.sqrt(self.var),size=(nx,ny))
+            adu[n] += noise
+            adu[n] = np.clip(adu[n],0,None)
         return adu
         
-    def save(self,movie,state,gtmat):
+    def save(self,movie,state,gtmat,mask):
         datapath = self.config['datapath']
         characters = string.ascii_lowercase + string.digits
         unique_id = ''.join(secrets.choice(characters) for i in range(8))
         spath = 'Sim_' + unique_id
         os.mkdir(datapath+spath)
         imsave(datapath+spath+'/'+spath+'.tif',movie,imagej=True)
+        imsave(datapath+spath+'/'+spath+'-mask.tif',mask,imagej=True)
         with open(datapath+spath+'/'+'config.json', 'w') as f:
             json.dump(self.config, f)
         np.savez(datapath+spath+'/'+spath+'_ssa.npz',state=state)

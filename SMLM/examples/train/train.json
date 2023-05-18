@@ -3,7 +3,7 @@
 		"n_gpu": 0,
 
 		"arch": {
-				"type": "SMLModel",
+				"type": "UNetModel",
 				"args": {
 		"n_channels": 1,
 		"n_classes": 2

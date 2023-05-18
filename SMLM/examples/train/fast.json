@@ -17,6 +17,6 @@
 		"offset": "cmos/offset.npz",
 		"var": "cmos/var.npz",
 		"sigma": 0.92,
-		"N0": 2000,
+		"N0": 500,
 		"pixel_size": 108.3
 }

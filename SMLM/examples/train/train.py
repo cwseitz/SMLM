@@ -21,11 +21,8 @@ config = ConfigParser(config)
 
 logger = config.get_logger('train')
 data_loader = config.init_obj('data_loader', data_loaders)
-for img,target in data_loader.dataset:
-    print(img,target)
-#valid_data_loader = data_loader.split_validation()
+valid_data_loader = None
 
-"""
 model = config.init_obj('arch', module_arch)
 logger.info(model)
 
@@ -50,4 +47,4 @@ trainer = UNETTrainer(model, criterion, metrics, optimizer,
                       
                       
 trainer.train()
-"""
+
