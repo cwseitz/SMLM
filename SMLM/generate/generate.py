@@ -119,13 +119,11 @@ class Generator2D:
         datapath = self.config['datapath']
         characters = string.ascii_lowercase + string.digits
         unique_id = ''.join(secrets.choice(characters) for i in range(8))
-        spath = 'Sim_' + unique_id
-        os.mkdir(datapath+spath)
-        imsave(datapath+spath+'/'+spath+'.tif',movie,imagej=True)
-        imsave(datapath+spath+'/'+spath+'-mask.tif',mask,imagej=True)
-        with open(datapath+spath+'/'+'config.json', 'w') as f:
+        fname = 'Sim_' + unique_id
+        imsave(datapath+fname+'.tif',movie,imagej=True)
+        with open(datapath+fname+'.json', 'w') as f:
             json.dump(self.config, f)
-        np.savez(datapath+spath+'/'+spath+'-mask.npz',mask=mask)
-        np.savez(datapath+spath+'/'+spath+'_ssa.npz',state=state)
-        np.savez(datapath+spath+'/'+spath+'_gtmat.npz',gtmat=gtmat)
+        np.savez(datapath+fname+'-mask.npz',mask=mask)
+        np.savez(datapath+fname+'_ssa.npz',state=state)
+        np.savez(datapath+fname+'_gtmat.npz',gtmat=gtmat)
 

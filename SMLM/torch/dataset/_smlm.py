@@ -7,14 +7,13 @@ from torch.utils.data import Dataset
 
 class SMLMDataset(Dataset):
     def __init__(self,dir):
-        self.input_dir = dir + 'input/'
-        self.target_dir = dir + 'target/'
-        files = glob(self.input_dir+'*.tif')
+        self.dir = dir
+        files = glob(self.dir+'*.tif')
         inputs = []; targets = []
         for f in files:
             fname = f.split('/')[-1].split('.')[0]
-            raw_path = join(self.input_dir, f)
-            tgt_path = join(self.target_dir, fname + '-mask.npz')
+            raw_path = join(self.dir, f)
+            tgt_path = join(self.dir, fname + '-mask.npz')
             inputs.append(imread(raw_path))
             targets.append(np.load(tgt_path)['mask'])
         self.inputs = np.concatenate(inputs,axis=0)
@@ -22,7 +21,6 @@ class SMLMDataset(Dataset):
         self.inputs = torch.from_numpy(self.inputs)
         self.inputs = torch.unsqueeze(self.inputs,1)
         self.targets = torch.from_numpy(self.targets)
-        print(self.inputs.shape,self.targets.shape)
     def __len__(self):
         return len(self.inputs)
     def __getitem__(self, idx):
