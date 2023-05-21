@@ -8,7 +8,7 @@ def mixloglike(theta,adu,eta,texp,gain,var):
     ntheta,nspots = theta.shape
     theta = theta.T.reshape((ntheta*nspots,))
     X,Y = np.meshgrid(np.arange(0,lx),np.arange(0,ly))
-    mu = np.zeros_like(adu)
+    mu = np.zeros_like(adu,dtype=np.float32)
     for n in range(nspots):
         x0,y0,sigma,N0 = theta[4*n:4*(n+1)]
         alpha = np.sqrt(2)*sigma
