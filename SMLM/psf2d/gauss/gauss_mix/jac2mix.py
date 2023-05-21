@@ -3,7 +3,7 @@ from scipy.special import erf
 
 def jac2mix(adu,X,Y,theta,eta,texp,gain,var):
     ntheta,nspots = theta.shape
-    nlam = np.zeros_like(adu)
+    nlam = np.zeros_like(adu,dtype=np.float32)
     for n in range(nspots):
         x0,y0,sigma,N0 = theta[:,n]
         alpha = np.sqrt(2)*sigma

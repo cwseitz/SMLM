@@ -18,7 +18,5 @@ def hessmix(theta,adu,cmos_params):
     B = np.sum(Hb*J2[np.newaxis, np.newaxis, :],axis=-1)
     H = A + B
     return H
-    
-
 
 

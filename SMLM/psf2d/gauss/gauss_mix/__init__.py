@@ -3,6 +3,7 @@ from .hess2mix import *
 from .jac1mix import *
 from .jac2mix import *
 from .hessmix import *
+from .jacmix import *
 from .hessmix_auto import *
-from .mix import *
-from .mixloglike import *
+from .mll import *
+from .mll_auto import *

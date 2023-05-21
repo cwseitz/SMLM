@@ -13,7 +13,7 @@ from scipy.special import factorial
 from SSA._SSA import photoswitch
 from .bin_ssa import bin_ssa 
 
-class Generator2D:
+class TimeSeries2D:
     def __init__(self,config):
         self.config = config
         self.particles = config['particles']
