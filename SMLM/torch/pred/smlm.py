@@ -38,7 +38,6 @@ class NeuralEstimator2D:
         filtered_coordinates = coordinates[np.logical_and(x_mask, y_mask)]
         return filtered_coordinates
     def diagnostic(self,adu,theta,patch_coords,patch_mask):
-        print(theta)
         fig,ax=plt.subplots(1,2)
         ax[0].imshow(adu,cmap='gray')
         ax[1].imshow(patch_mask,cmap='gray')
@@ -53,19 +52,19 @@ class NeuralEstimator2D:
             xmin,xmax = x0-patch_hw,x0+patch_hw
             ymin,ymax = y0-patch_hw,y0+patch_hw
             patch_gt_coords = self.filter_spots(gtmat,xmin,xmax,ymin,ymax)
-            patch_coords[:,0] -= xmin
-            patch_coords[:,1] -= ymin
+            patch_gt_coords[:,0] -= xmin
+            patch_gt_coords[:,1] -= ymin
             patch_adu = adu[xmin:xmax,ymin:ymax]
             patch_msk = mask[xmin:xmax,ymin:ymax]
             patch_gain = self.gain[xmin:xmax,ymin:ymax]
             patch_var = self.var[xmin:xmax,ymin:ymax]
-            self.diagnostic(patch_adu,theta,patch_coords,patch_msk)
+            self.diagnostic(patch_adu,theta,patch_gt_coords,patch_msk)
             this_theta = np.array([x0,y0,self.N0,self.sigma])
             this_theta = this_theta[:,np.newaxis].T
             cmos_params = [self.eta,self.texp,patch_gain,patch_var]
             jac = jacmix(this_theta.T,patch_adu,cmos_params)
             jac_auto = jacmix_auto(this_theta.T,patch_adu,cmos_params)
-            dx0,dy0,ds,dn0 = jac
+            dx0,dy0,ds,dn0 = jac            
     def load_model(self):
         device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
         model = UNetModel(1,2)
