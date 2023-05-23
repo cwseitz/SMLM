@@ -3,7 +3,7 @@ import time
 import uuid
 import matplotlib.pyplot as plt
 from SMLM.generators import Iso2D
-from SMLM.psf2d import jaciso, jaciso_auto
+from SMLM.psf2d import jaciso
 from SMLM.torch.pred import *
 from numpy.random import beta
 from scipy.stats import multivariate_normal
@@ -29,15 +29,16 @@ N0 = 1000
 cmos_params = [eta,texp,gain,var]
 
 theta0 = np.zeros((4,1))
-theta0[0] = 10.0
-theta0[1] = 10.0
+theta0[0] = 5.3
+theta0[1] = 10.2
 theta0[2] = sigma
 theta0[3] = N0
 
 frame = Iso2D(theta0,eta,texp,L,gain,offset,var)
 adu = frame.generate(plot=True)
 
-theta0[0] += 0.5
-theta0[1] += 0.5
+theta0[0] += 1.5
+theta0[1] += 1.5
 opt = Optimizer(theta0,adu,cmos_params)
-opt.optimize()
+theta = opt.optimize()
+print(theta)

@@ -55,4 +55,3 @@ class Iso2D:
         plt.tight_layout()
         plt.show()
 
-

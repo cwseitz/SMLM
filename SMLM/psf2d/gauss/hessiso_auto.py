@@ -7,8 +7,8 @@ from scipy.special import factorial
 from .ill_auto import *
 
 def hessiso_auto(theta,adu,eta,texp,gain,var):
-    negloglike_theta = negloglike_fixed(adu,eta,texp,gain,var)
-    hessian_ = hessian(negloglike_theta)
+    isologlike = isologlike_auto(adu,eta,texp,gain,var)
+    hessian_ = hessian(isologlike)
     hess = hessian_(theta)
     return hess
 

@@ -2,6 +2,7 @@ import numpy as np
 import time
 import uuid
 import matplotlib.pyplot as plt
+from SMLM.generators import *
 from SMLM.psf2d import *
 from numpy.random import beta
 from scipy.stats import multivariate_normal
@@ -32,12 +33,7 @@ theta0[1] = np.random.normal(L/2,2.0)
 theta0[2] = sigma
 theta0[3] = N0
 
-frame = FrameIso(theta0,eta,texp,L,gain,offset,var)
+frame = Iso2D(theta0,eta,texp,L,gain,offset,var)
 adu = frame.generate(plot=True)
-
-fig, ax = plt.subplots(1,2)
-hess = hessiso_auto(theta0,adu,*cmos_params)
-ax[0].imshow(hess,cmap='gray')
-hess = hessiso(theta0,adu,*cmos_params)
-ax[1].imshow(hess,cmap='gray')
-plt.show()
+jac = jaciso(theta0,adu,*cmos_params)
+print(jac)
