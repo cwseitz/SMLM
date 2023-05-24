@@ -5,7 +5,7 @@ from autograd.scipy.special import erf
 from scipy.optimize import minimize
 from scipy.special import factorial
 
-def isologlike_auto(adu,eta,texp,gain,var):
+def isologlike_auto2d(adu,eta,texp,gain,var):
     def isologlike(theta,adu=adu,gain=gain,var=var):
         lx, ly = adu.shape
         x0,y0,sigma,N0 = theta

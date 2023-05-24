@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import torch
 from scipy.special import erf
 
-def isologlike(theta,adu,eta,texp,gain,var):
+def isologlike2d(theta,adu,eta,texp,gain,var):
     lx, ly = adu.shape
     x0,y0,sigma,N0 = theta
     alpha = np.sqrt(2)*sigma

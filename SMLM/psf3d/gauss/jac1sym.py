@@ -14,6 +14,7 @@ Mu = gain*eta*texp*N0*L + var
 j_x0 = Mu.diff(x0)
 j_y0 = Mu.diff(y0)
 j_z0 = Mu.diff(z0)
+j_s0 = Mu.diff(sigma)
 j_N0 = Mu.diff(N0)
 
 # Generate code for the Jacobian function
@@ -28,8 +29,9 @@ code += "def jacobian1(x, y, x0, y0, z0, sigma, N0, eta, texp, gain, var):\n"
 code += f"    j_x0 = {j_x0}\n"
 code += f"    j_y0 = {j_y0}\n"
 code += f"    j_z0 = {j_z0}\n"
+code += f"    j_s0 = {j_s0}\n"
 code += f"    j_N0 = {j_N0}\n"
-code += "    jac = np.array([j_x0, j_y0, j_z0, j_N0], dtype=np.float64)\n"
+code += "    jac = np.array([j_x0, j_y0, j_z0, j_s0, j_N0], dtype=np.float64)\n"
 code += "    return jac\n"
 
 # Save code to file

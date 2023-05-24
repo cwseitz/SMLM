@@ -6,7 +6,7 @@ from autograd.scipy.special import erf
 from scipy.optimize import minimize
 from scipy.special import factorial
 
-class Astigmatism3D:
+class Iso3D:
     def __init__(self,theta,eta,texp,L,gain,offset,var,depth=16):
         self.theta = theta
         self.gain = gain #ADU/e-
