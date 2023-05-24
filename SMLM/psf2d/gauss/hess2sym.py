@@ -14,34 +14,21 @@ h_xx = Mu.diff(x0).diff(x0)
 h_xy = Mu.diff(x0).diff(y0)
 h_xs = Mu.diff(x0).diff(sigma)
 h_xN = Mu.diff(x0).diff(N0)
-#h_xB = Mu.diff(x0).diff(B0)
 
 h_yx = Mu.diff(y0).diff(x0)
 h_yy = Mu.diff(y0).diff(y0)
 h_ys = Mu.diff(y0).diff(sigma)
 h_yN = Mu.diff(y0).diff(N0)
-#h_yB = Mu.diff(y0).diff(B0)
 
 h_sx = Mu.diff(sigma).diff(x0)
 h_sy = Mu.diff(sigma).diff(y0)
 h_ss = Mu.diff(sigma).diff(sigma)
 h_sN = Mu.diff(sigma).diff(N0)
-#h_sB = Mu.diff(sigma).diff(B0)
-
 
 h_Nx = Mu.diff(N0).diff(x0)
 h_Ny = Mu.diff(N0).diff(y0)
 h_Ns = Mu.diff(N0).diff(sigma)
 h_NN = Mu.diff(N0).diff(N0)
-#h_NB = Mu.diff(N0).diff(B0)
-
-
-#h_Bx = Mu.diff(B0).diff(x0)
-#h_By = Mu.diff(B0).diff(y0)
-#h_Bs = Mu.diff(B0).diff(sigma)
-#h_BN = Mu.diff(B0).diff(N0)
-#h_BB = Mu.diff(B0).diff(B0)
-
 
 # Generate code for the Hessian function
 code = """import numpy as np\n
