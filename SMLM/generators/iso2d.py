@@ -35,6 +35,7 @@ class Iso2D:
         adu = self.gain*electrons
         self.adu += adu
         self.adu += self.read_noise
+        self.adu = np.clip(adu,0,None)
         if plot:
             self.show(self.mu,self.electrons,self.read_noise,self.adu)
         return self.adu

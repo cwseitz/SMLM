@@ -8,12 +8,11 @@ from .hess2 import hessian2
 from .jac1 import jacobian1
 from .jac2 import jacobian2
 
-def crlb2d(theta,adu,eta,texp,gain,var):
-    lx, ly = adu.shape
+def crlb2d(theta,L,eta,texp,gain,var):
     ntheta = len(theta)
     x0,y0,sigma,N0 = theta
     alpha = np.sqrt(2)*sigma
-    x = np.arange(0,lx); y = np.arange(0,lx)
+    x = np.arange(0,L); y = np.arange(0,L)
     X,Y = np.meshgrid(x,y)
     lambdx = 0.5*(erf((X+0.5-x0)/alpha)-erf((X-0.5-x0)/alpha))
     lambdy = 0.5*(erf((Y+0.5-y0)/alpha)-erf((Y-0.5-y0)/alpha))
@@ -25,7 +24,7 @@ def crlb2d(theta,adu,eta,texp,gain,var):
     for n in range(ntheta):
        for m in range(ntheta):
            I[n,m] = np.sum(J[n]*J[m]/mu)
-    return np.diagonal(inv(I))
+    return np.sqrt(np.diagonal(inv(I)))
 
 
 
