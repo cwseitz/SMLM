@@ -4,5 +4,5 @@ import matplotlib.pyplot as plt
 sum2d = Summary2D()
 #sum2d.crlb()
 #sum2d.sgld()
-sum2d.plot1()
+sum2d.plot2()
 plt.show()

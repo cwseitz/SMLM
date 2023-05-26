@@ -20,7 +20,6 @@ class MLEOptimizer2D:
         loglike = np.zeros((iters,))
         theta = np.zeros_like(self.theta0)
         theta += self.theta0
-        print(theta)
         for n in range(iters):
             loglike[n] = isologlike2d(theta,self.adu,*self.cmos_params)
             jac = jaciso2d(theta,self.adu,self.cmos_params)
@@ -60,7 +59,12 @@ class SGLDOptimizer2D:
         ax.scatter([theta[0]],[theta[1]],marker='x',color='blue',label='end')
         ax.legend()
         plt.show()
-    def optimize(self,iters=1000,lr=0.001):
+    def scatter_samples(self,theta):
+        fig, ax = plt.subplots()
+        ax.scatter(theta[:,0],theta[:,1],color='black')
+        plt.tight_layout()
+        plt.show()
+    def optimize(self,iters=1000,lr=0.001,tburn=500,scatter=False):
         ntheta = len(self.theta0)
         theta = np.zeros((iters,ntheta))
         theta[0,:] = self.theta0
@@ -72,5 +76,8 @@ class SGLDOptimizer2D:
             theta[n,1] = theta[n-1,1] - lr*jac[1] + np.sqrt(lr)*eps2
             theta[n,2] = theta[n-1,2]
             theta[n,3] = theta[n-1,3]
-        #self.plot(self.theta0,theta)
-        return theta
+        theta = theta[tburn:,:]
+        if scatter:
+            self.scatter_samples(theta)
+        theta_est = np.mean(theta,axis=0)
+        return theta_est
