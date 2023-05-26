@@ -14,21 +14,21 @@ class MLEOptimizer2D:
         ax.scatter([theta0[0]],[theta0[1]],marker='x',color='red')
         ax.scatter([theta[0]],[theta[1]],marker='x',color='blue')
         plt.show()
-    def optimize(self,iters=1000,eta=None):
-        if eta is None:
-            eta = np.array([0.001,0.001,0,0.01])
-        iter0 = iters/7
+    def optimize(self,iters=1000,lr=None):
+        if lr is None:
+            lr = np.array([0.001,0.001,0,0.01])
         loglike = np.zeros((iters,))
         theta = np.zeros_like(self.theta0)
         theta += self.theta0
+        print(theta)
         for n in range(iters):
             loglike[n] = isologlike2d(theta,self.adu,*self.cmos_params)
             jac = jaciso2d(theta,self.adu,self.cmos_params)
-            theta[0] -= eta[0]*jac[0]*np.exp(-n/iter0)
-            theta[1] -= eta[1]*jac[1]*np.exp(-n/iter0)
-            theta[2] -= eta[2]*jac[2]*np.exp(-n/iter0)
-            theta[3] -= eta[3]*jac[3]*np.exp(-n/iter0)
-        self.plot(self.theta0,theta)
+            theta[0] -= lr[0]*jac[0]
+            theta[1] -= lr[1]*jac[1]
+            theta[2] -= lr[2]*jac[2]
+            theta[3] -= lr[3]*jac[3]
+        #self.plot(self.theta0,theta)
         return theta, loglike
  
 class MLEOptimizer3D:
@@ -56,8 +56,9 @@ class SGLDOptimizer2D:
     def plot(self,theta0,theta):
         fig, ax = plt.subplots()
         ax.imshow(self.adu,cmap='gray')
-        ax.scatter([theta0[0]],[theta0[1]],marker='x',color='red')
-        ax.scatter([theta[0]],[theta[1]],marker='x',color='blue')
+        ax.scatter([theta0[0]],[theta0[1]],marker='x',color='red',label='start')
+        ax.scatter([theta[0]],[theta[1]],marker='x',color='blue',label='end')
+        ax.legend()
         plt.show()
     def optimize(self,iters=1000,lr=0.001):
         ntheta = len(self.theta0)

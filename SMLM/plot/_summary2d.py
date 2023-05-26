@@ -25,38 +25,72 @@ class Summary2D:
         self.eta = 0.8
         self.N0 = 1000
         self.thetagt = np.array([10.0,10.0,self.sigma,self.N0])
+        
     def sgld(self,tburn=2500):
         fig, ax = plt.subplots(figsize=(4,4))
         dtheta = np.array([0.0,0.0,0.0,0.0])
         theta0 = np.zeros_like(self.thetagt)
         theta0 = self.thetagt + dtheta
-        for color,this_var in zip(['dodgerblue','turquoise','pink'],[1,10,100]):
+        for color,this_var in zip(['dodgerblue','turquoise','pink'],[1,100,500]):
             cmos_params = [self.eta,self.texp,self.gain,this_var]
             iso2d = Iso2D(theta0,self.eta,self.texp,self.L,self.gain,self.offset,this_var)
             adu = iso2d.generate(plot=False)
             opt = SGLDOptimizer2D(theta0,adu,cmos_params)
-            theta = opt.optimize(iters=5000,lr=0.002)
+            theta = opt.optimize(iters=5000,lr=0.0005)
             theta = theta[tburn:,:]
             ax.scatter(theta[:,0],theta[:,1],color=color,alpha=0.2,marker='x',label=r'$\sigma_{r}^{2}=$'+f'{this_var}')
         ax.set_xlabel('X')
         ax.set_ylabel('Y')
         plt.legend()
         plt.tight_layout()
-    def crlb(self):
-        fig, ax = plt.subplots(figsize=(3,4))
+        
+    def plot1(self,nn=5):
+        N0space = np.linspace(100,1000,nn)
         theta0 = np.zeros_like(self.thetagt)
         theta0 += self.thetagt
-        for color,this_var in zip(['dodgerblue','turquoise','pink'],[1,10,100]):
-            N0space = np.linspace(10,5000,20)
-            crlb_n0 = np.zeros((20,4))
-            for i,n0 in enumerate(N0space):
-                theta0[3] = n0
-                crlb_n0[i] = crlb2d(theta0,self.L,self.eta,self.texp,self.gain,this_var)
-            ax.loglog(N0space,crlb_n0[:,0],color=color,label=r'$\sigma_{r}^{2}=$'+f'{this_var}')
+        crlb_n0 = self.crlb(N0space,theta0)
+        rmse = self.rmse_batch(N0space)
+        fig, ax = plt.subplots(figsize=(3,4))
+        ax.loglog(N0space,crlb_n0[:,0],color='red',label=r'$\sigma_{r}^{2}=$'+f'{self.var0}')
+        ax.loglog(N0space,rmse[:,0],color='red',marker='x')
         ax.set_xlabel('Photons')
         ax.set_ylabel(r'$\sigma_{\mathrm{CRLB}}$ (pixels)')
         plt.legend()
         plt.tight_layout()
+        
+    def crlb(self,N0space,theta0,nn=5):
+        crlb_n0 = np.zeros((nn,4))
+        for i,n0 in enumerate(N0space):
+            theta0[3] = n0
+            crlb_n0[i] = crlb2d(theta0,self.L,self.eta,self.texp,self.gain,self.var)
+        return crlb_n0
+        
+    def rmse_batch(self,N0space):
+        errs = np.zeros((len(N0space),4))
+        for i,n0 in enumerate(N0space):
+            errs[i] = self.rmse_mle2d(n0)
+        return errs
+        
+    def rmse_mle2d(self,n0,nsamples=500):
+        err = np.zeros((nsamples,4))
+        theta = np.zeros_like(self.thetagt)
+        theta += self.thetagt
+        theta[3] = n0
+        for n in range(nsamples):
+            print(f'Error sample {n}')
+            iso2d = Iso2D(theta,self.eta,self.texp,self.L,self.gain,self.offset,self.var)
+            cmos_params = [self.eta,self.texp,self.gain,self.var]
+            adu = iso2d.generate(plot=False)
+            theta0 = np.zeros_like(self.thetagt)
+            theta0 += theta
+            theta0[0] += np.random.normal(0,1)
+            theta0[1] += np.random.normal(0,1)
+            opt = MLEOptimizer2D(theta0,adu,cmos_params)
+            theta_est,loglike = opt.optimize(iters=200)
+            err[n,:] = theta_est - self.thetagt
+            del iso2d
+
+        return np.sqrt(np.var(err,axis=0))
               
 
         
