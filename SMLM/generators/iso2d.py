@@ -1,13 +1,10 @@
-import autograd.numpy as np
+import numpy as np
 import matplotlib.pyplot as plt
-from autograd import grad, jacobian, hessian
-from autograd.scipy.stats import norm, multivariate_normal
-from autograd.scipy.special import erf
-from scipy.optimize import minimize
-from scipy.special import factorial
+from scipy.special import erf
+from perlin_noise import PerlinNoise
 
 class Iso2D:
-    def __init__(self,theta,eta,texp,L,gain,offset,var):
+    def __init__(self,theta,eta,texp,L,gain,offset,var,B0):
         self.theta = theta
         self.gain = gain #ADU/e-
         self.offset = offset
@@ -15,18 +12,21 @@ class Iso2D:
         self.texp = texp
         self.eta = eta
         self.L = L
-
+        self.B0 = B0
+        
     def generate(self,plot=False):
-        rate = self.rate_map()
-        electrons = self.shot_noise(rate)           
-        adu = self.gain*electrons
+        rate1 = self.rate1()
+        rate2 = self.rate2()
+        electronsfg = self.shot_noise(rate1)      
+        electronsbg = self.shot_noise(rate2)           
+        adu = self.gain*(electronsbg+electronsfg)
         adu = self.read_noise(adu)
         adu = adu.astype(np.int16) #digitize
         if plot:
-            self.show(rate,electrons,adu)
+            self.show(rate1+rate2,electronsfg,electronsbg,adu)
         return adu
         
-    def rate_map(self):
+    def rate1(self):
         ntheta = self.theta.shape
         x0,y0,sigma,N0 = self.theta
         alpha = np.sqrt(2)*sigma
@@ -37,6 +37,14 @@ class Iso2D:
         lam = lambdx*lambdy
         rate = N0*self.texp*self.eta*lam
         return rate
+
+    def rate2(self):
+        noise = PerlinNoise(octaves=10,seed=None)
+        nx,ny = self.L,self.L
+        bg = [[noise([i/nx,j/ny]) for j in range(nx)] for i in range(ny)]
+        bg = 1 + np.array(bg)
+        bg_rate = self.B0*(bg/bg.max())
+        return bg_rate
         
     def shot_noise(self,rate):
         electrons = np.random.poisson(lam=rate) 
@@ -48,18 +56,27 @@ class Iso2D:
         adu += noise
         adu = np.clip(adu,0,None)
         return adu
-         
-    def show(self,rate,electrons,adu):
-        fig, ax = plt.subplots(1,3,figsize=(7,2))
+                 
+    def show(self,rate,electronsfg,electronsbg,adu):
+    
+        fig, ax = plt.subplots(1,4,figsize=(8,1.5))
+        
         im1 = ax[0].imshow(rate,cmap='gray')
         ax[0].set_xticks([]);ax[0].set_yticks([])
         plt.colorbar(im1, ax=ax[0], label=r'$\mu$')
-        im2 = ax[1].imshow(electrons,cmap='gray')
-        ax[1].set_xticks([]);ax[1].set_yticks([])
-        plt.colorbar(im2, ax=ax[1], label=r'$e^{-}$')
-        im4 = ax[2].imshow(adu,cmap='gray')
+        
+        im2 = ax[2].imshow(electronsfg,cmap='gray')
         ax[2].set_xticks([]);ax[2].set_yticks([])
-        plt.colorbar(im4, ax=ax[2], label=r'H (ADU)')
+        plt.colorbar(im2, ax=ax[2], label=r'$\mathrm{FG} \;e^{-}$')
+
+        im3 = ax[1].imshow(electronsbg,cmap='gray')
+        ax[1].set_xticks([]);ax[1].set_yticks([])
+        plt.colorbar(im1, ax=ax[1], label=r'$\mathrm{BG} \;e^{-}$')
+        
+        im4 = ax[3].imshow(adu,cmap='gray')
+        ax[3].set_xticks([]);ax[3].set_yticks([])
+        plt.colorbar(im4, ax=ax[3], label=r'ADU')
+        
         plt.tight_layout()
         plt.show()
 

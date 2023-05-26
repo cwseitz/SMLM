@@ -51,6 +51,7 @@ def plot(output,target):
     ax[2].imshow(target[0,0,:,:].detach().cpu().numpy(),cmap='gray')
     plt.show()
 
+
 def CrossEntropyLoss(output,target):
     #plot(output,target)
     return F.cross_entropy(output,target)

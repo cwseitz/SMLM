@@ -25,6 +25,7 @@ sigma = sigma = sigma/pixel_size
 texp = 1.0 #seconds
 eta = 0.8 #quantum efficiency
 N0 = 1000
+B0 = 100
 cmos_params = [eta,texp,gain,var]
 
 theta0 = np.zeros((4,))
@@ -33,7 +34,7 @@ theta0[1] = np.random.normal(L/2,2.0)
 theta0[2] = sigma
 theta0[3] = N0
 
-frame = Iso2D(theta0,eta,texp,L,gain,offset,var)
-adu = frame.generate(plot=True)
-jac = jaciso(theta0,adu,*cmos_params)
-print(jac)
+iso2d = Iso2D(theta0,eta,texp,L,gain,offset,var,B0)
+adu = iso2d.generate(plot=True)
+#jac = jaciso(theta0,adu,*cmos_params)
+#print(jac)
