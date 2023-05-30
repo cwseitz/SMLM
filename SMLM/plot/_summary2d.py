@@ -24,6 +24,7 @@ class Summary2D:
         self.texp = 1.0
         self.eta = 0.8
         self.N0 = 1000
+        self.B0 = 0
         self.thetagt = np.array([10.0,10.0,self.sigma,self.N0])
            
     def plot1(self,nn=5):
@@ -80,7 +81,7 @@ class Summary2D:
         theta[3] = n0
         for n in range(nsamples):
             print(f'Error sample {n}')
-            iso2d = Iso2D(theta,self.eta,self.texp,self.L,self.gain,self.offset,self.var)
+            iso2d = Iso2D(theta,self.eta,self.texp,self.L,self.gain,self.offset,self.var,self.B0)
             cmos_params = [self.eta,self.texp,self.gain,self.var]
             adu = iso2d.generate(plot=False)
             theta0 = np.zeros_like(self.thetagt)
@@ -101,7 +102,7 @@ class Summary2D:
         theta[3] = n0
         for n in range(nsamples):
             print(f'Error sample {n}')
-            iso2d = Iso2D(theta,self.eta,self.texp,self.L,self.gain,self.offset,self.var)
+            iso2d = Iso2D(theta,self.eta,self.texp,self.L,self.gain,self.offset,self.var,self.B0)
             cmos_params = [self.eta,self.texp,self.gain,self.var]
             adu = iso2d.generate(plot=False)
             theta0 = np.zeros_like(self.thetagt)

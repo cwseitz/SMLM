@@ -18,5 +18,6 @@
 		"var": "cmos/var.npz",
 		"sigma": 0.92,
 		"N0": 500,
+		"B0": 30,
 		"pixel_size": 108.3
 }
