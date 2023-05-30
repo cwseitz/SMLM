@@ -8,7 +8,7 @@ from SMLM.torch.pred import *
 from numpy.random import beta
 from scipy.stats import multivariate_normal
 
-class Summary2D:
+class CRLB2D:
     def __init__(self):
         self.L = 20
         self.omat = np.ones((self.L,self.L))

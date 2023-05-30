@@ -7,7 +7,7 @@ from scipy.optimize import minimize
 from scipy.special import factorial
 
 class Iso3D:
-    def __init__(self,theta,eta,texp,L,gain,offset,var,depth=16):
+    def __init__(self,theta,eta,texp,L,gain,offset,var,pixel_size,depth=16):
         self.theta = theta
         self.gain = gain #ADU/e-
         self.offset = offset
@@ -15,6 +15,7 @@ class Iso3D:
         self.texp = texp
         self.eta = eta
         self.L = L
+        self.pixel_size = pixel_size
         self.adu = np.zeros((self.L,self.L))
         self.read_noise = np.random.normal(self.offset,np.sqrt(self.var),size=self.adu.shape)
         self.electrons = np.zeros((self.L,self.L))
@@ -22,6 +23,7 @@ class Iso3D:
     def generate(self,depth=16,plot=False):
         ntheta = self.theta.shape
         x0,y0,z0,sigma,N0 = self.theta
+        z0 = self.pixel_size*z0
         sigma_x = sigma + 5.349139e-7*(z0+413.741)**2
         sigma_y = sigma + 6.016703e-7*(z0-413.741)**2
         alpha_x = np.sqrt(2)*sigma_x

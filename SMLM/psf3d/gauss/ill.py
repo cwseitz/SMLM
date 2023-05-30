@@ -2,12 +2,12 @@ import numpy as np
 import matplotlib.pyplot as plt
 import torch
 from scipy.special import erf
+from .defocus import *
 
 def isologlike3d(theta,adu,eta,texp,gain,var):
     lx, ly = adu.shape
     x0,y0,z0,sigma,N0 = theta
-    sigma_x = sigma + 5.349139e-7*(z0+413.741)**2
-    sigma_y = sigma + 6.016703e-7*(z0-413.741)**2
+    sigma_x, sigma_y = defocus_func2(z0,sigma)
     alpha_x = np.sqrt(2)*sigma_x
     alpha_y = np.sqrt(2)*sigma_y
     x = np.arange(0,lx); y = np.arange(0,ly)
