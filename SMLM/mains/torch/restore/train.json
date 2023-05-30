@@ -10,7 +10,7 @@
 	}
 		},
 		"data_loader": {
-				"type": "SMLMDataLoader",
+				"type": "DetDataLoader",
 				"args":{
 						"data_dir": "/home/cwseitz/Desktop/test/",
 						"batch_size": 5,

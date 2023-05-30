@@ -31,7 +31,7 @@ cmos_params = [eta,texp,gain,var]
 thetagt = np.zeros((5,))
 thetagt[0] = 5.3
 thetagt[1] = 10.2
-thetagt[2] = 5.0
+thetagt[2] = 0.0
 thetagt[3] = sigma
 thetagt[4] = N0
 
@@ -47,7 +47,7 @@ theta0[4] = thetagt[4]
 
 lr = np.array([0.001,0.001,0.001,0,0]) #hyperpar
 opt = MLEOptimizer3D(theta0,adu,cmos_params)
-theta, loglike = opt.optimize(iters=1000,lr=lr)
+theta, loglike = opt.optimize(iters=200,lr=lr)
 print(f'Thetagt: {thetagt}')
 print(f'Theta: {theta}')
 print(f'Diff: {theta-thetagt}')
