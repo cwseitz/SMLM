@@ -14,7 +14,7 @@ class CRLB3D:
         self.omat = np.ones((self.L,self.L))
         self.gain0 = 2.2
         self.offset0 = 0.0
-        self.var0 = 500.0
+        self.var0 = 1.0
         self.gain = self.gain0*self.omat
         self.offset = self.offset0*self.omat
         self.var = self.var0*self.omat
@@ -34,7 +34,6 @@ class CRLB3D:
         #crlb_n0 = self.crlb(N0space,theta0)
         rmse = self.rmse_mle_batch(N0space)
         fig, ax = plt.subplots(figsize=(3,4))
-        #ax.loglog(N0space,crlb_n0[:,0],color='red',label=r'$\sigma_{r}^{2}=$'+f'{self.var0}')
         ax.loglog(N0space,rmse[:,0],color='red',marker='x',label='x')
         ax.loglog(N0space,rmse[:,1],color='blue',marker='x',label='y')
         ax.loglog(N0space,rmse[:,2],color='purple',marker='x',label='z')
