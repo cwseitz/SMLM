@@ -57,10 +57,18 @@ class TimeSeries2D:
         self.ssa()
         self.get_srate(self.state)
         self.get_brate()
-        self.shot_noise(self.srate+self.brate)        
-        self.adu = self.gain[np.newaxis,:,:]*self.electrons
-        self.adu = self.read_noise(self.adu)
-        self.adu = self.adu.astype(np.int16) #digitize
+        self.signal_electrons = self.shot_noise(self.srate)
+        self.backrd_electrons = self.shot_noise(self.brate)
+        self.electrons = self.signal_electrons + self.backrd_electrons     
+        
+        self.signal_adu = self.gain[np.newaxis,:,:]*self.signal_electrons
+        self.signal_adu = self.signal_adu.astype(np.int16) #round
+        self.backrd_adu = self.gain[np.newaxis,:,:]*self.backrd_electrons
+        self.backrd_adu = self.backrd_adu.astype(np.int16) #round
+        self.rnoise_adu = self.read_noise()
+        self.rnoise_adu = self.rnoise_adu.astype(np.int16) #round
+        
+        self.adu = self.signal_adu + self.backrd_adu + self.rnoise_adu
         self.segment()
 
     def get_brate(self):
@@ -114,29 +122,32 @@ class TimeSeries2D:
    
     def shot_noise(self,rate):
         nt,nx,ny = rate.shape
-        self.electrons = np.zeros_like(rate)
+        electrons = np.zeros_like(rate)
         for n in range(nt):
-            self.electrons[n] = np.random.poisson(lam=rate[n]) 
+            electrons[n] = np.random.poisson(lam=rate[n])
+        return electrons
                 
-    def read_noise(self,adu):
-        nt,nx,ny = adu.shape
+    def read_noise(self):
+        nt = int(round(self.T/self.texp))
+        noise_adu = np.zeros((nt,self.nx,self.ny))
         for n in range(nt):
-            noise = np.random.normal(self.offset,np.sqrt(self.var),size=(nx,ny))
-            adu[n] += noise
-            adu[n] = np.clip(adu[n],0,None)
-        return adu
+            noise = np.random.normal(self.offset,np.sqrt(self.var),size=(self.nx,self.ny))
+            noise_adu[n] += noise
+            noise_adu[n] = np.clip(noise_adu[n],0,None)
+        return noise_adu
         
     def save(self):
         datapath = self.config['datapath']
         characters = string.ascii_lowercase + string.digits
         unique_id = ''.join(secrets.choice(characters) for i in range(8))
         fname = 'Sim_' + unique_id
-        imsave(datapath+fname+'.tif',self.adu,imagej=True)
+        imsave(datapath+fname+'-adu.tif',self.adu,imagej=True)
+        imsave(datapath+fname+'-signal_adu.tif',self.signal_adu,imagej=True)
+        imsave(datapath+fname+'-backrd_adu.tif',self.backrd_adu,imagej=True)
+        imsave(datapath+fname+'-rnoise_adu.tif',self.rnoise_adu,imagej=True)
         with open(datapath+fname+'.json', 'w') as f:
             json.dump(self.config, f)
         np.savez(datapath+fname+'_mask.npz',mask=self.mask)
         np.savez(datapath+fname+'_ssa.npz',state=self.state)
         np.savez(datapath+fname+'_gtmat.npz',gtmat=self.gtmat)
-        np.savez(datapath+fname+'_srate.npz',srate=self.srate)
-        np.savez(datapath+fname+'_brate.npz',brate=self.brate)
 

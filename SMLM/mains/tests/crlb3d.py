@@ -1,6 +1,6 @@
-from SMLM.plot import CRLB3D
+from SMLM.plot.crlb3d import *
 import matplotlib.pyplot as plt
 
-crlb3d = CRLB3D()
-crlb3d.plot1()
+figure = Figure2()
+figure.plot()
 plt.show()
