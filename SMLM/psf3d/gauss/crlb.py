@@ -7,12 +7,12 @@ from .hess1 import hessian1
 from .hess2 import hessian2 
 from .jac1 import jacobian1
 from .jac2 import jacobian2
+from .defocus import *
 
-def crlb3d(theta,L,eta,texp,gain,var):
+def crlb3d(theta,L,eta,texp,gain,var,zmin=413.741,ab=5.349139e-7):
     ntheta = len(theta)
     x0,y0,z0,sigma,N0 = theta
-    sigma_x = sigma + 5.349139e-7*(z0+413.741)**2
-    sigma_y = sigma + 6.016703e-7*(z0-413.741)**2
+    sigma_x, sigma_y = defocus_func(z0,sigma,zmin,ab)
     alpha_x = np.sqrt(2)*sigma_x
     alpha_y = np.sqrt(2)*sigma_y
     x = np.arange(0,L); y = np.arange(0,L)

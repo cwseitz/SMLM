@@ -115,17 +115,31 @@ class Figure2:
     def plot(self):
         theta0 = np.zeros_like(self.thetagt)
         theta0 += self.thetagt
-        z0space = np.linspace(-5,5,10)
+        z0space = np.linspace(-10,10,10)
         rmse = self.rmse_mle_batch(z0space)
         fig, ax = plt.subplots(figsize=(3,4))
-        ax.plot(z0space,rmse[:,0],color='red',marker='x',label='x')
-        ax.plot(z0space,rmse[:,1],color='blue',marker='x',label='y')
-        ax.plot(z0space,rmse[:,2],color='purple',marker='x',label='z')
-        ax.set_xlabel('Photons')
-        ax.set_ylabel('Localization error (pixels)')
+        ax.plot(self.pixel_size*z0space,self.pixel_size*rmse[:,0],color='red',marker='x',label='x')
+        ax.plot(self.pixel_size*z0space,self.pixel_size*rmse[:,1],color='blue',marker='x',label='y')
+        ax.plot(self.pixel_size*z0space,self.pixel_size*rmse[:,2],color='purple',marker='x',label='z')
+        ax.set_xlabel('z (nm)')
+        ax.set_ylabel('Localization error (nm)')
         plt.legend()
         plt.tight_layout()
 
+    def plot2(self,nn=5):
+        z0space = np.linspace(-10,10,10)
+        theta0 = np.zeros_like(self.thetagt)
+        theta0 += self.thetagt
+        crlb_z0 = self.crlb(z0space,theta0)
+        fig, ax = plt.subplots(figsize=(3,4))
+        ax.plot(self.pixel_size*z0space,self.pixel_size*crlb_z0[:,0],color='red',label='x')
+        ax.plot(self.pixel_size*z0space,self.pixel_size*crlb_z0[:,1],color='blue',label='y')
+        ax.plot(self.pixel_size*z0space,self.pixel_size*crlb_z0[:,2],color='purple',label='z')
+        ax.set_xlabel('z (nm)')
+        ax.set_ylabel('Localization error (nm)')
+        plt.legend()
+        plt.tight_layout()
+        
     def rmse_mle3d(self,z0,error_samples=500):
         err = np.zeros((error_samples,5))
         theta = np.zeros_like(self.thetagt)
@@ -155,11 +169,61 @@ class Figure2:
         return errs
  
      
-    def crlb(self,z0space,theta0,nn=5):
-        crlb_z0 = np.zeros((nn,5))
+    def crlb(self,z0space,theta0):
+        nz = len(z0space)
+        crlb_z0 = np.zeros((nz,5))
         for i,z0 in enumerate(z0space):
-            theta0[3] = n0
+            theta0[2] = z0
             crlb_z0[i] = crlb3d(theta0,self.L,self.eta,self.texp,self.gain,self.var)
         return crlb_z0
    
+class Figure3:
+    """Fixed SNR, fixed axial position, variable zmin, variable A/B"""
+    def __init__(self):
+        self.L = 20
+        self.omat = np.ones((self.L,self.L))
+        self.gain0 = 2.2
+        self.offset0 = 0.0
+        self.var0 = 200.0
+        self.gain = self.gain0*self.omat
+        self.offset = self.offset0*self.omat
+        self.var = self.var0*self.omat
+        self.pixel_size = 108.3
+        self.sigma = 0.22*640/1.4 
+        self.sigma = self.sigma/self.pixel_size
+        self.texp = 1.0
+        self.eta = 0.8
+        self.N0 = 1000
+        self.B0 = 0
+        self.thetagt = np.array([10.0,10.0,0.0,self.sigma,self.N0])
         
+    def plot(self):
+        zminspace = np.linspace(10,1000,100)
+        abspace = np.linspace(1e-7,1e-5,100)
+        theta0 = np.zeros_like(self.thetagt)
+        theta0 += self.thetagt
+        crlb_map = self.crlb(zminspace,abspace,theta0)
+        
+        fig, ax = plt.subplots(1,3)
+        ax[0].imshow(crlb_map[:,:,0],cmap='jet')
+        ax[0].set_title('x')
+        ax[0].set_xlabel(r'$z_{min}$')
+        ax[0].set_ylabel(r'$\alpha$')
+        ax[1].imshow(crlb_map[:,:,1],cmap='jet')
+        ax[1].set_title('y')
+        ax[1].set_xlabel(r'$z_{min}$')
+        ax[1].set_ylabel(r'$\alpha$')
+        ax[2].imshow(crlb_map[:,:,2],cmap='jet')
+        ax[2].set_title('z')
+        ax[2].set_xlabel(r'$z_{min}$')
+        ax[2].set_ylabel(r'$\alpha$')
+        plt.tight_layout()
+        plt.show()
+        
+    def crlb(self,zminspace,abspace,theta0):
+        crlb_map = np.zeros((100,100,5))
+        for i,zmin in enumerate(zminspace):
+            for j,ab in enumerate(abspace):
+                print(f'CRLB Map [{i},{j}]')
+                crlb_map[i,j] = crlb3d(theta0,self.L,self.eta,self.texp,self.gain,self.var,zmin=zmin,ab=ab)
+        return crlb_map     
