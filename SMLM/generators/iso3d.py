@@ -2,10 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.special import erf
 from perlin_noise import PerlinNoise
-from ..psf3d import defocus_func
+from ..psf import *
 
 class Iso3D:
-    def __init__(self,theta,eta,texp,L,gain,offset,var,B0,pixel_size=108.3):
+    def __init__(self,theta,eta,texp,L,gain,offset,var,B0,zmin,alpha,beta,pixel_size=108.3):
         self.theta = theta
         self.gain = gain #ADU/e-
         self.offset = offset
@@ -15,6 +15,9 @@ class Iso3D:
         self.L = L
         self.B0 = B0
         self.pixel_size = pixel_size
+        self.zmin = zmin
+        self.alpha = alpha
+        self.beta = beta
         
     def generate(self,plot=False):
         srate = self.get_srate()
@@ -27,22 +30,19 @@ class Iso3D:
             self.show(srate,brate,electrons,adu)
         return adu
         
-    def get_srate(self,zmin=400.0,ab=6e-7):
+    def get_srate(self):
         ntheta = self.theta.shape
         x0,y0,z0,sigma,N0 = self.theta
-        sigma_x, sigma_y = defocus_func(z0,sigma,zmin,ab)
-        alpha_x = np.sqrt(2)*sigma_x
-        alpha_y = np.sqrt(2)*sigma_y
         x = np.arange(0,self.L); y = np.arange(0,self.L)
         X,Y = np.meshgrid(x,y)
-        lambdx = 0.5*(erf((X+0.5-x0)/alpha_x)-erf((X-0.5-x0)/alpha_x))
-        lambdy = 0.5*(erf((Y+0.5-y0)/alpha_y)-erf((Y-0.5-y0)/alpha_y))
-        lam = lambdx*lambdy
+        sigma_x = sx(sigma,z0,self.zmin,self.alpha)
+        sigma_y = sy(sigma,z0,self.zmin,self.beta)
+        lam = lamx(X,x0,sigma_x)*lamy(Y,y0,sigma_y)
         rate = N0*self.texp*self.eta*lam
         return rate
 
     def get_brate(self):
-        noise = PerlinNoise(octaves=100,seed=None)
+        noise = PerlinNoise(octaves=10,seed=None)
         nx,ny = self.L,self.L
         bg = [[noise([i/nx,j/ny]) for j in range(nx)] for i in range(ny)]
         bg = 1 + np.array(bg)

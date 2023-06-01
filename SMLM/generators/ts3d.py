@@ -12,7 +12,7 @@ from scipy.special import factorial
 
 from SSA._SSA import photoswitch
 from .bin_ssa import bin_ssa
-from ..psf3d import defocus_func
+from ..psf import *
 from perlin_noise import PerlinNoise
 
 class TimeSeries3D:

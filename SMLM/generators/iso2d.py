@@ -38,7 +38,7 @@ class Iso2D:
         return rate
 
     def get_brate(self):
-        noise = PerlinNoise(octaves=100,seed=None)
+        noise = PerlinNoise(octaves=10,seed=None)
         nx,ny = self.L,self.L
         bg = [[noise([i/nx,j/ny]) for j in range(nx)] for i in range(ny)]
         bg = 1 + np.array(bg)
