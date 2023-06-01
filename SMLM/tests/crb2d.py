@@ -4,7 +4,7 @@ from SMLM.generators import Iso2D
 from SMLM.psf import *
 from scipy.stats import multivariate_normal
 
-class CRLB2D_Test1:
+class CRB2D_Test1:
     """Variable SNR"""
     def __init__(self):
         self.L = 20
@@ -23,6 +23,7 @@ class CRLB2D_Test1:
         self.N0 = 1000
         self.B0 = 0
         self.thetagt = np.array([10.0,10.0,self.sigma,self.N0])
+        self.cmos_params = [self.L,self.eta,self.texp,self.gain,self.var]
            
     def plot1(self,nn=5):
         N0space = np.linspace(100,1000,nn)
@@ -56,7 +57,7 @@ class CRLB2D_Test1:
         crlb_n0 = np.zeros((nn,4))
         for i,n0 in enumerate(N0space):
             theta0[3] = n0
-            crlb_n0[i] = crlb2d(theta0,self.L,self.eta,self.texp,self.gain,self.var)
+            crlb_n0[i] = crlb2d(theta0,self.cmos_params)
         return crlb_n0
 
     def rmse_sgld_batch(self,N0space):
@@ -79,13 +80,12 @@ class CRLB2D_Test1:
         for n in range(nsamples):
             print(f'Error sample {n}')
             iso2d = Iso2D(theta,self.eta,self.texp,self.L,self.gain,self.offset,self.var,self.B0)
-            cmos_params = [self.eta,self.texp,self.gain,self.var]
             adu = iso2d.generate(plot=False)
             theta0 = np.zeros_like(self.thetagt)
             theta0 += theta
             theta0[0] += np.random.normal(0,1)
             theta0[1] += np.random.normal(0,1)
-            opt = MLEOptimizer2D(theta0,adu,cmos_params)
+            opt = MLEOptimizer2D(theta0,adu,self.cmos_params)
             theta_est,loglike = opt.optimize(iters=200)
             err[n,:] = theta_est - self.thetagt
             del iso2d
@@ -100,13 +100,12 @@ class CRLB2D_Test1:
         for n in range(nsamples):
             print(f'Error sample {n}')
             iso2d = Iso2D(theta,self.eta,self.texp,self.L,self.gain,self.offset,self.var,self.B0)
-            cmos_params = [self.eta,self.texp,self.gain,self.var]
             adu = iso2d.generate(plot=False)
             theta0 = np.zeros_like(self.thetagt)
             theta0 += theta
             theta0[0] += np.random.normal(0,1)
             theta0[1] += np.random.normal(0,1)
-            opt = SGLDOptimizer2D(theta0,adu,cmos_params)
+            opt = SGLDOptimizer2D(theta0,adu,self.cmos_params)
             theta_est = opt.optimize(iters=iters,tburn=tburn,scatter=False)
             err[n,:] = theta_est - self.thetagt
             del iso2d, opt

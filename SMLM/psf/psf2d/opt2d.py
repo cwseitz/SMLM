@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from .psf2d import *
+from .ill2d import *
+from .jac2d import *
 
 class MLEOptimizer2D:
     def __init__(self,theta0,adu,cmos_params):
@@ -13,20 +15,21 @@ class MLEOptimizer2D:
         ax.scatter([theta0[0]],[theta0[1]],marker='x',color='red')
         ax.scatter([theta[0]],[theta[1]],marker='x',color='blue')
         plt.show()
-    def optimize(self,iters=1000,lr=None):
+    def optimize(self,iters=1000,lr=None,plot=False):
         if lr is None:
             lr = np.array([0.001,0.001,0,0.01])
         loglike = np.zeros((iters,))
         theta = np.zeros_like(self.theta0)
         theta += self.theta0
         for n in range(iters):
-            loglike[n] = isologlike2d(theta,self.adu,*self.cmos_params)
+            loglike[n] = isologlike2d(theta,self.adu,self.cmos_params)
             jac = jaciso2d(theta,self.adu,self.cmos_params)
             theta[0] -= lr[0]*jac[0]
             theta[1] -= lr[1]*jac[1]
             theta[2] -= lr[2]*jac[2]
             theta[3] -= lr[3]*jac[3]
-        #self.plot(self.theta0,theta)
+        if plot:
+            self.plot(self.theta0,theta)
         return theta, loglike
  
 class SGLDOptimizer2D:

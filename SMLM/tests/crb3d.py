@@ -4,7 +4,7 @@ from SMLM.generators import Iso3D
 from SMLM.psf import *
 from scipy.stats import multivariate_normal
 
-class CRLB3D_Test1:
+class CRB3D_Test1:
     """Fixed axial position and variable SNR"""
     def __init__(self):
         self.L = 20
@@ -22,8 +22,16 @@ class CRLB3D_Test1:
         self.eta = 0.8
         self.N0 = 1000
         self.B0 = 0
-        self.thetagt = np.array([10.0,10.0,5.0,self.sigma,self.N0])
-
+        self.zmin = 400.0
+        self.alpha = 6e-7
+        self.beta = 6e-7
+        self.x0 = 10.0
+        self.y0 = 10.0
+        self.z0 = 5.0
+        self.thetagt = np.array([self.x0,self.y0,self.z0*self.pixel_size,self.sigma,self.N0])
+        self.cmos_params = [self.L,self.eta,self.texp,self.gain,self.var]
+        self.dfcs_params = [self.zmin,self.alpha,self.beta]
+        
     def plot1(self,nn=5):
         N0space = np.linspace(500,1000,nn)
         theta0 = np.zeros_like(self.thetagt)
@@ -60,14 +68,13 @@ class CRLB3D_Test1:
         for n in range(error_samples):
             print(f'Error sample {n}')
             iso3d = Iso3D(theta,self.eta,self.texp,self.L,self.gain,self.offset,self.var,self.B0)
-            cmos_params = [self.eta,self.texp,self.gain,self.var]
             adu = iso3d.generate(plot=False)
             theta0 = np.zeros_like(self.thetagt)
             theta0 += theta
             theta0[0] += np.random.normal(0,1)
             theta0[1] += np.random.normal(0,1)
             theta0[2] += np.random.normal(0,1)
-            opt = MLEOptimizer3D(theta0,adu,cmos_params)
+            opt = MLEOptimizer3D(theta0,adu,self.cmos_params,self.dfcs_params)
             theta_est,loglike = opt.optimize(iters=1000)
             err[n,:] = theta_est - self.thetagt
             del iso3d
@@ -85,7 +92,7 @@ class CRLB3D_Test1:
         crlb_n0 = np.zeros((nn,5))
         for i,n0 in enumerate(N0space):
             theta0[3] = n0
-            crlb_n0[i] = crlb3d(theta0,self.L,self.eta,self.texp,self.gain,self.var)
+            crlb_n0[i] = crlb3d(theta0,self.cmos_params,self.dfcs_params)
         return crlb_n0
 
 class CRLB3D_Test2:
@@ -106,7 +113,15 @@ class CRLB3D_Test2:
         self.eta = 0.8
         self.N0 = 1000
         self.B0 = 0
-        self.thetagt = np.array([10.0,10.0,5.0,self.sigma,self.N0])
+        self.zmin = 400.0
+        self.alpha = 6e-7
+        self.beta = 6e-7
+        self.x0 = 10.0
+        self.y0 = 10.0
+        self.z0 = 5.0
+        self.thetagt = np.array([self.x0,self.y0,self.z0*self.pixel_size,self.sigma,self.N0])
+        self.cmos_params = [self.L,self.eta,self.texp,self.gain,self.var]
+        self.dfcs_params = [self.zmin,self.alpha,self.beta]
         
     def plot(self):
         theta0 = np.zeros_like(self.thetagt)
@@ -134,14 +149,13 @@ class CRLB3D_Test2:
         for n in range(error_samples):
             print(f'Error sample {n}')
             iso3d = Iso3D(theta,self.eta,self.texp,self.L,self.gain,self.offset,self.var,self.B0)
-            cmos_params = [self.eta,self.texp,self.gain,self.var]
             adu = iso3d.generate(plot=False)
             theta0 = np.zeros_like(self.thetagt)
             theta0 += theta
             theta0[0] += np.random.normal(0,1)
             theta0[1] += np.random.normal(0,1)
             theta0[2] += np.random.normal(0,1)
-            opt = MLEOptimizer3D(theta0,adu,cmos_params)
+            opt = MLEOptimizer3D(theta0,adu,self.cmos_params,self.dfcs_params)
             theta_est,loglike = opt.optimize(iters=300)
             err[n,:] = theta_est - self.thetagt
             del iso3d
@@ -160,7 +174,7 @@ class CRLB3D_Test2:
         crlb_z0 = np.zeros((nz,5))
         for i,z0 in enumerate(z0space):
             theta0[2] = z0
-            crlb_z0[i] = crlb3d(theta0,self.L,self.eta,self.texp,self.gain,self.var)
+            crlb_z0[i] = crlb3d(theta0,self.cmos_params,self.dfcs_params)
         return crlb_z0
    
 class CRLB3D_Test3:
@@ -181,7 +195,15 @@ class CRLB3D_Test3:
         self.eta = 0.8
         self.N0 = 1000
         self.B0 = 0
-        self.thetagt = np.array([10.0,10.0,0.0,self.sigma,self.N0])
+        self.zmin = 400.0
+        self.alpha = 6e-7
+        self.beta = 6e-7
+        self.x0 = 10.0
+        self.y0 = 10.0
+        self.z0 = 5.0
+        self.thetagt = np.array([self.x0,self.y0,self.z0*self.pixel_size,self.sigma,self.N0])
+        self.cmos_params = [self.L,self.eta,self.texp,self.gain,self.var]
+        self.dfcs_params = [self.zmin,self.alpha,self.beta]
         
     def plot(self):
         zminspace = np.linspace(10,1000,100)
@@ -211,5 +233,5 @@ class CRLB3D_Test3:
         for i,zmin in enumerate(zminspace):
             for j,ab in enumerate(abspace):
                 print(f'CRLB Map [{i},{j}]')
-                crlb_map[i,j] = crlb3d(theta0,self.L,self.eta,self.texp,self.gain,self.var,zmin=zmin,ab=ab)
+                crlb_map[i,j] = crlb3d(theta0,self.cmos_params,self.dfcs_params)
         return crlb_map     

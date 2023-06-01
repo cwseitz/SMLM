@@ -2,8 +2,9 @@ import numpy as np
 from numpy.linalg import inv
 from .psf2d import *
 
-def crlb2d(theta,L,eta,texp,gain,var):
+def crlb2d(theta,cmos_params):
     ntheta = len(theta)
+    L,eta,texp,gain,var = cmos_params
     x0,y0,sigma,N0 = theta
     alpha = np.sqrt(2)*sigma
     x = np.arange(0,L); y = np.arange(0,L)
@@ -11,7 +12,7 @@ def crlb2d(theta,L,eta,texp,gain,var):
     lam = lamx(X,x0,sigma)*lamy(Y,y0,sigma)
     i0 = gain*eta*texp*N0
     muprm = i0*lam + var
-    J = jac1(X,Y,x0,y0,sigma,N0,eta,texp,gain,var)
+    J = jac1(X,Y,theta,cmos_params)
     I = np.zeros((ntheta,ntheta))
     for n in range(ntheta):
        for m in range(ntheta):

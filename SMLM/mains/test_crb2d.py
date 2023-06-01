@@ -1,6 +1,6 @@
-from SMLM.tests import CRLB2D
+from SMLM.tests import CRB2D_Test1
 import matplotlib.pyplot as plt
 
-crlb2d = CRLB2D()
-crlb2d.plot2()
+crb2dtest = CRB2D_Test1()
+crb2dtest.plot1()
 plt.show()

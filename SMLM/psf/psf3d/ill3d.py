@@ -4,10 +4,11 @@ import torch
 from scipy.special import erf
 from .psf3d import *
 
-def isologlike3d(theta,adu,eta,texp,gain,var,zmin,alpha,beta):
-    lx, ly = adu.shape
-    x0,y0,z0,sigma,N0 = self.theta
-    x = np.arange(0,self.L); y = np.arange(0,self.L)
+def isologlike3d(theta,adu,cmos_params,dfcs_params):
+    x0,y0,z0,sigma,N0 = theta
+    zmin,alpha,beta = dfcs_params
+    L,eta,texp,gain,var = cmos_params
+    x = np.arange(0,L); y = np.arange(0,L)
     X,Y = np.meshgrid(x,y)
     sigma_x = sx(sigma,z0,zmin,alpha)
     sigma_y = sy(sigma,z0,zmin,beta)
