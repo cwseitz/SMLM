@@ -30,29 +30,15 @@ class CRB2D_Test1:
         theta0 = np.zeros_like(self.thetagt)
         theta0 += self.thetagt
         crlb_n0 = self.crlb(N0space,theta0)
-        rmse = self.rmse_mle_batch(N0space)
+        #rmse = self.rmse_mle_batch(N0space)
         fig, ax = plt.subplots(figsize=(3,4))
         ax.loglog(N0space,crlb_n0[:,0],color='red',label=r'$\sigma_{r}^{2}=$'+f'{self.var0}')
-        ax.loglog(N0space,rmse[:,0],color='red',marker='x')
+        #ax.loglog(N0space,rmse[:,0],color='red',marker='x')
         ax.set_xlabel('Photons')
         ax.set_ylabel(r'$\sigma_{\mathrm{CRLB}}$ (pixels)')
         plt.legend()
         plt.tight_layout()
-
-    def plot2(self,nn=5):
-        N0space = np.linspace(500,1000,nn)
-        theta0 = np.zeros_like(self.thetagt)
-        theta0 += self.thetagt
-        crlb_n0 = self.crlb(N0space,theta0)
-        rmse = self.rmse_sgld_batch(N0space)
-        fig, ax = plt.subplots(figsize=(3,4))
-        ax.loglog(N0space,crlb_n0[:,0],color='red',label=r'$\sigma_{r}^{2}=$'+f'{self.var0}')
-        ax.loglog(N0space,rmse[:,0],color='red',marker='x')
-        ax.set_xlabel('Photons')
-        ax.set_ylabel(r'$\sigma_{\mathrm{CRLB}}$ (pixels)')
-        plt.legend()
-        plt.tight_layout()
-        
+       
     def crlb(self,N0space,theta0,nn=5):
         crlb_n0 = np.zeros((nn,4))
         for i,n0 in enumerate(N0space):

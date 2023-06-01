@@ -46,20 +46,6 @@ class CRB3D_Test1:
         plt.legend()
         plt.tight_layout()
 
-    def plot2(self):
-        theta0 = np.zeros_like(self.thetagt)
-        theta0 += self.thetagt
-        z0space = np.linspace(-5,5,10)
-        rmse = self.rmse_mle_batch(z0space)
-        fig, ax = plt.subplots(figsize=(3,4))
-        ax.loglog(N0space,rmse[:,0],color='red',marker='x',label='x')
-        ax.loglog(N0space,rmse[:,1],color='blue',marker='x',label='y')
-        ax.loglog(N0space,rmse[:,2],color='purple',marker='x',label='z')
-        ax.set_xlabel('Photons')
-        ax.set_ylabel('Localization error (pixels)')
-        plt.legend()
-        plt.tight_layout()
-
     def rmse_mle3d(self,n0,error_samples=500):
         err = np.zeros((error_samples,5))
         theta = np.zeros_like(self.thetagt)
@@ -95,7 +81,7 @@ class CRB3D_Test1:
             crlb_n0[i] = crlb3d(theta0,self.cmos_params,self.dfcs_params)
         return crlb_n0
 
-class CRLB3D_Test2:
+class CRB3D_Test2:
     """Fixed SNR and variable axial position"""
     def __init__(self):
         self.L = 20
@@ -126,16 +112,16 @@ class CRLB3D_Test2:
     def plot(self):
         theta0 = np.zeros_like(self.thetagt)
         theta0 += self.thetagt
-        z0space = np.linspace(-10,10,10)
-        #rmse = self.rmse_mle_batch(z0space)
+        z0space = self.pixel_size*np.linspace(-10,10,100)
+        rmse = self.rmse_mle_batch(z0space)
         crlb_z0 = self.crlb(z0space,theta0)
         fig, ax = plt.subplots(figsize=(3,4))
-        #ax.plot(self.pixel_size*z0space,self.pixel_size*rmse[:,0],color='red',marker='x',label='x')
-        #ax.plot(self.pixel_size*z0space,self.pixel_size*rmse[:,1],color='blue',marker='x',label='y')
-        #ax.plot(self.pixel_size*z0space,self.pixel_size*rmse[:,2],color='purple',marker='x',label='z')
+        ax.plot(self.pixel_size*z0space,self.pixel_size*rmse[:,0],color='red',marker='x',label='x')
+        ax.plot(self.pixel_size*z0space,self.pixel_size*rmse[:,1],color='blue',marker='x',label='y')
+        ax.plot(self.pixel_size*z0space,self.pixel_size*rmse[:,2],color='purple',marker='x',label='z')
         ax.plot(self.pixel_size*z0space,self.pixel_size*crlb_z0[:,0],color='red',linestyle='--')
         ax.plot(self.pixel_size*z0space,self.pixel_size*crlb_z0[:,1],color='blue',linestyle='--')
-        ax.plot(self.pixel_size*z0space,self.pixel_size*crlb_z0[:,2],color='purple',linestyle='--')
+        ax.plot(self.pixel_size*z0space,crlb_z0[:,2],color='purple',linestyle='--')
         ax.set_xlabel('z (nm)')
         ax.set_ylabel('Localization error (nm)')
         plt.legend()
@@ -148,7 +134,8 @@ class CRLB3D_Test2:
         theta[2] = z0
         for n in range(error_samples):
             print(f'Error sample {n}')
-            iso3d = Iso3D(theta,self.eta,self.texp,self.L,self.gain,self.offset,self.var,self.B0)
+            iso3d = Iso3D(theta,self.eta,self.texp,self.L,self.gain,
+                          self.offset,self.var,self.B0,self.zmin,self.alpha,self.beta)
             adu = iso3d.generate(plot=False)
             theta0 = np.zeros_like(self.thetagt)
             theta0 += theta
@@ -177,7 +164,7 @@ class CRLB3D_Test2:
             crlb_z0[i] = crlb3d(theta0,self.cmos_params,self.dfcs_params)
         return crlb_z0
    
-class CRLB3D_Test3:
+class CRB3D_Test3:
     """Fixed SNR, fixed axial position, variable zmin, variable A/B"""
     def __init__(self):
         self.L = 20

@@ -1,6 +1,6 @@
-from SMLM.tests import CRB3D_Test1
+from SMLM.tests import *
 import matplotlib.pyplot as plt
 
-crb3dtest = CRB3D_Test1()
-crb3dtest.plot1()
+crb3dtest = CRB3D_Test2()
+crb3dtest.plot()
 plt.show()
