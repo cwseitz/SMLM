@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.special import erf
 from perlin_noise import PerlinNoise
+from ..psf3d import defocus_func
 
 class Iso3D:
     def __init__(self,theta,eta,texp,L,gain,offset,var,B0,pixel_size=108.3):
@@ -26,15 +27,10 @@ class Iso3D:
             self.show(srate,brate,electrons,adu)
         return adu
         
-    def get_srate(self):
+    def get_srate(self,zmin=400.0,ab=6e-7):
         ntheta = self.theta.shape
         x0,y0,z0,sigma,N0 = self.theta
-        z0 = self.pixel_size*z0
-        zmin = 413.741
-        a = 5.349139e-7
-        b = 6.016703e-7
-        sigma_x = sigma + a*(z0+zmin)**2
-        sigma_y = sigma + b*(z0-zmin)**2
+        sigma_x, sigma_y = defocus_func(z0,sigma,zmin,ab)
         alpha_x = np.sqrt(2)*sigma_x
         alpha_y = np.sqrt(2)*sigma_y
         x = np.arange(0,self.L); y = np.arange(0,self.L)

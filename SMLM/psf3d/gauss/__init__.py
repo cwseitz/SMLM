@@ -5,3 +5,4 @@ from .ill import *
 from .ill_auto import *
 from .gauss_mix import *
 from .crlb import *
+from .defocus import *

@@ -3,8 +3,8 @@ import sympy as sp
 # Define the variables
 x, y, x0, y0, z0, sigma, N0, eta, texp, gain, var = sp.symbols('x y x0 y0 z0 sigma N0 eta texp gain var')
 
-sigma_x = sigma + 5.349139e-7*(108.3*z0+413.741)**2
-sigma_y = sigma + 6.016703e-7*(108.3*z0-413.741)**2
+sigma_x = sigma + 6e-7*(z0+400)**2
+sigma_y = sigma + 6e-7*(z0-400)**2
  
 Lambda_x = sp.erf((x + 1/2 - x0)/(sp.sqrt(2)*sigma_x)) - sp.erf((x - 1/2 - x0)/(sp.sqrt(2)*sigma_x))
 Lambda_y = sp.erf((y + 1/2 - y0)/(sp.sqrt(2)*sigma_y)) - sp.erf((y - 1/2 - y0)/(sp.sqrt(2)*sigma_y))

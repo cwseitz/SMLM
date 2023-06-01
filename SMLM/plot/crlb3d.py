@@ -116,31 +116,21 @@ class Figure2:
         theta0 = np.zeros_like(self.thetagt)
         theta0 += self.thetagt
         z0space = np.linspace(-10,10,10)
-        rmse = self.rmse_mle_batch(z0space)
-        fig, ax = plt.subplots(figsize=(3,4))
-        ax.plot(self.pixel_size*z0space,self.pixel_size*rmse[:,0],color='red',marker='x',label='x')
-        ax.plot(self.pixel_size*z0space,self.pixel_size*rmse[:,1],color='blue',marker='x',label='y')
-        ax.plot(self.pixel_size*z0space,self.pixel_size*rmse[:,2],color='purple',marker='x',label='z')
-        ax.set_xlabel('z (nm)')
-        ax.set_ylabel('Localization error (nm)')
-        plt.legend()
-        plt.tight_layout()
-
-    def plot2(self,nn=5):
-        z0space = np.linspace(-10,10,10)
-        theta0 = np.zeros_like(self.thetagt)
-        theta0 += self.thetagt
+        #rmse = self.rmse_mle_batch(z0space)
         crlb_z0 = self.crlb(z0space,theta0)
         fig, ax = plt.subplots(figsize=(3,4))
-        ax.plot(self.pixel_size*z0space,self.pixel_size*crlb_z0[:,0],color='red',label='x')
-        ax.plot(self.pixel_size*z0space,self.pixel_size*crlb_z0[:,1],color='blue',label='y')
-        ax.plot(self.pixel_size*z0space,self.pixel_size*crlb_z0[:,2],color='purple',label='z')
+        #ax.plot(self.pixel_size*z0space,self.pixel_size*rmse[:,0],color='red',marker='x',label='x')
+        #ax.plot(self.pixel_size*z0space,self.pixel_size*rmse[:,1],color='blue',marker='x',label='y')
+        #ax.plot(self.pixel_size*z0space,self.pixel_size*rmse[:,2],color='purple',marker='x',label='z')
+        ax.plot(self.pixel_size*z0space,self.pixel_size*crlb_z0[:,0],color='red',linestyle='--')
+        ax.plot(self.pixel_size*z0space,self.pixel_size*crlb_z0[:,1],color='blue',linestyle='--')
+        ax.plot(self.pixel_size*z0space,self.pixel_size*crlb_z0[:,2],color='purple',linestyle='--')
         ax.set_xlabel('z (nm)')
         ax.set_ylabel('Localization error (nm)')
         plt.legend()
         plt.tight_layout()
         
-    def rmse_mle3d(self,z0,error_samples=500):
+    def rmse_mle3d(self,z0,error_samples=200):
         err = np.zeros((error_samples,5))
         theta = np.zeros_like(self.thetagt)
         theta += self.thetagt

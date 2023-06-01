@@ -9,12 +9,13 @@ from .jac1 import jacobian1
 from .jac2 import jacobian2
 from .defocus import *
 
-def crlb3d(theta,L,eta,texp,gain,var,zmin=413.741,ab=5.349139e-7):
+def crlb3d(theta,L,eta,texp,gain,var,zmin=400.0,ab=6e-7,pixel_size=108.3):
     ntheta = len(theta)
     x0,y0,z0,sigma,N0 = theta
     sigma_x, sigma_y = defocus_func(z0,sigma,zmin,ab)
     alpha_x = np.sqrt(2)*sigma_x
     alpha_y = np.sqrt(2)*sigma_y
+    z0 *= pixel_size
     x = np.arange(0,L); y = np.arange(0,L)
     X,Y = np.meshgrid(x,y)
     lambdx = 0.5*(erf((X+0.5-x0)/alpha_x)-erf((X-0.5-x0)/alpha_x))
