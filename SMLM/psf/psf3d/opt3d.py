@@ -12,7 +12,7 @@ class MLEOptimizer3D:
        self.dfcs_params = dfcs_params
    def optimize(self,iters=1000,lr=None):
        if lr is None:
-           lr = np.array([0.001,0.001,0.001,0,0])
+           lr = np.array([0.001,0.001,0.1,0,0])
        loglike = np.zeros((iters,))
        theta = np.zeros_like(self.theta0)
        theta += self.theta0

@@ -88,7 +88,7 @@ class CRB3D_Test2:
         self.omat = np.ones((self.L,self.L))
         self.gain0 = 2.2
         self.offset0 = 0.0
-        self.var0 = 100.0
+        self.var0 = 1.0
         self.gain = self.gain0*self.omat
         self.offset = self.offset0*self.omat
         self.var = self.var0*self.omat
@@ -116,12 +116,12 @@ class CRB3D_Test2:
         rmse = self.rmse_mle_batch(z0space)
         crlb_z0 = self.crlb(z0space,theta0)
         fig, ax = plt.subplots(figsize=(3,4))
-        ax.plot(self.pixel_size*z0space,self.pixel_size*rmse[:,0],color='red',marker='x',label='x')
-        ax.plot(self.pixel_size*z0space,self.pixel_size*rmse[:,1],color='blue',marker='x',label='y')
-        ax.plot(self.pixel_size*z0space,self.pixel_size*rmse[:,2],color='purple',marker='x',label='z')
-        ax.plot(self.pixel_size*z0space,self.pixel_size*crlb_z0[:,0],color='red',linestyle='--')
-        ax.plot(self.pixel_size*z0space,self.pixel_size*crlb_z0[:,1],color='blue',linestyle='--')
-        ax.plot(self.pixel_size*z0space,crlb_z0[:,2],color='purple',linestyle='--')
+        ax.plot(z0space,self.pixel_size*rmse[:,0],color='red',marker='x',label='x')
+        ax.plot(z0space,self.pixel_size*rmse[:,1],color='blue',marker='x',label='y')
+        ax.plot(z0space,self.pixel_size*rmse[:,2],color='purple',marker='x',label='z')
+        ax.plot(z0space,self.pixel_size*crlb_z0[:,0],color='red',linestyle='--')
+        ax.plot(z0space,self.pixel_size*crlb_z0[:,1],color='blue',linestyle='--')
+        ax.plot(z0space,crlb_z0[:,2],color='purple',linestyle='--')
         ax.set_xlabel('z (nm)')
         ax.set_ylabel('Localization error (nm)')
         plt.legend()
