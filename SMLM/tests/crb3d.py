@@ -141,9 +141,9 @@ class CRB3D_Test2:
             theta0 += theta
             theta0[0] += np.random.normal(0,1)
             theta0[1] += np.random.normal(0,1)
-            theta0[2] += np.random.normal(0,1)
-            opt = MLEOptimizer3D(theta0,adu,self.cmos_params,self.dfcs_params)
-            theta_est,loglike = opt.optimize(iters=300)
+            theta0[2] += np.random.normal(0,100)
+            opt = MLEOptimizer3D(theta0,adu,self.cmos_params,self.dfcs_params,self.thetagt)
+            theta_est,loglike = opt.optimize(iters=300,plot=False)
             err[n,:] = theta_est - self.thetagt
             del iso3d
         return np.sqrt(np.var(err,axis=0))
