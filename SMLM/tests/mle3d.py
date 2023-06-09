@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from SMLM.generators import Iso3D
-from SMLM.psf import *
+from SMLM.psf.psf3d import *
 
 class MLE3D_Test:
     """Test a single instance of MLE for 3D psf"""
@@ -20,13 +20,15 @@ class MLE3D_Test:
         self.eta = 0.8
         self.N0 = 1000
         self.B0 = 0
-        self.zmin = 100.0
+        self.zmin = 400.0
         self.alpha = 6e-7
         self.beta = 6e-7
         self.x0 = 10.0
         self.y0 = 10.0
-        self.z0 = 2.0
-        self.thetagt = np.array([self.x0,self.y0,self.z0*self.pixel_size,self.sigma,self.N0])
+        self.z0 = 400.0
+        self.sigma_x = sx(self.sigma,self.z0,self.zmin,self.alpha)
+        self.sigma_y = sy(self.sigma,self.z0,self.zmin,self.beta)
+        self.thetagt = np.array([self.x0,self.y0,self.sigma,self.sigma_x,self.sigma_y,self.N0])
         self.cmos_params = [self.L,self.eta,self.texp,self.gain,self.var]
         self.dfcs_params = [self.zmin,self.alpha,self.beta]
         
@@ -50,19 +52,17 @@ class MLE3D_Test:
                       self.gain,
                       self.offset,
                       self.var,
-                      self.B0,
-                      self.zmin,
-                      self.alpha,
-                      self.beta)
+                      self.B0)
         theta0 = np.zeros_like(self.thetagt)
         theta0[0] = self.thetagt[0] + np.random.normal(0,1)
         theta0[1] = self.thetagt[1] + np.random.normal(0,1)
-        theta0[2] = self.thetagt[2] + np.random.normal(0,100)
-        theta0[3] = self.thetagt[3]
-        theta0[4] = self.thetagt[4]
+        theta0[2] = self.thetagt[2]
+        theta0[3] = self.thetagt[2]
+        theta0[4] = self.thetagt[2]
+        theta0[5] = self.thetagt[5]
         adu = iso3d.generate(plot=True)
-        self.plot_defocus()
-        lr = np.array([0.001,0.001,0.1,0,0]) #hyperpar
+        #self.plot_defocus()
+        lr = np.array([0.001,0.001,0,0.001,0.001,0]) #hyperpar
         opt = MLEOptimizer3D(theta0,adu,self.cmos_params,self.dfcs_params,theta_gt=self.thetagt)
-        theta, loglike = opt.optimize(iters=500,lr=lr,plot=True)
+        theta, loglike = opt.optimize(iters=100,lr=lr,plot=True)
 

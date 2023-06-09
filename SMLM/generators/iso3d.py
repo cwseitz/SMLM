@@ -5,7 +5,7 @@ from perlin_noise import PerlinNoise
 from ..psf import *
 
 class Iso3D:
-    def __init__(self,theta,eta,texp,L,gain,offset,var,B0,zmin,alpha,beta,pixel_size=108.3):
+    def __init__(self,theta,eta,texp,L,gain,offset,var,B0,pixel_size=108.3):
         self.theta = theta
         self.gain = gain #ADU/e-
         self.offset = offset
@@ -15,9 +15,6 @@ class Iso3D:
         self.L = L
         self.B0 = B0
         self.pixel_size = pixel_size
-        self.zmin = zmin
-        self.alpha = alpha
-        self.beta = beta
         
     def generate(self,plot=False):
         srate = self.get_srate()
@@ -32,11 +29,9 @@ class Iso3D:
         
     def get_srate(self):
         ntheta = self.theta.shape
-        x0,y0,z0,sigma,N0 = self.theta
+        x0,y0,sigma,sigma_x,sigma_y,N0 = self.theta
         x = np.arange(0,self.L); y = np.arange(0,self.L)
         X,Y = np.meshgrid(x,y)
-        sigma_x = sx(sigma,z0,self.zmin,self.alpha)
-        sigma_y = sy(sigma,z0,self.zmin,self.beta)
         lam = lamx(X,x0,sigma_x)*lamy(Y,y0,sigma_y)
         rate = N0*self.texp*self.eta*lam
         return rate
