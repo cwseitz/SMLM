@@ -9,7 +9,7 @@ class MLE3D_Test:
         self.L = 20
         self.gain0 = 2.2
         self.offset0 = 0.0
-        self.var0 = 100.0
+        self.var0 = 1e-8
         mat = np.ones((self.L,self.L))
         self.gain = self.gain0*mat
         self.offset = self.offset0*mat
@@ -62,7 +62,7 @@ class MLE3D_Test:
         theta0[5] = self.thetagt[5]
         adu = iso3d.generate(plot=True)
         #self.plot_defocus()
-        lr = np.array([0.001,0.001,0,0.001,0.001,0]) #hyperpar
+        lr = np.array([0.0001,0.0001,0,0.0001,0.0001,0]) #hyperpar
         opt = MLEOptimizer3D(theta0,adu,self.cmos_params,self.dfcs_params,theta_gt=self.thetagt)
         theta, loglike = opt.optimize(iters=100,lr=lr,plot=True)
 

@@ -41,7 +41,7 @@ class MLEOptimizer3D:
        theta += self.theta0
        for n in range(iters):
            loglike[n] = isologlike3d(theta,self.adu,self.cmos_params,self.dfcs_params)
-           jac = jaciso3d(theta,self.adu,self.cmos_params,self.dfcs_params)
+           jac = jaciso_auto3d(theta,self.adu,self.cmos_params,self.dfcs_params)
            theta = theta - lr*jac
            if plot:
                thetat[n,:] = theta
