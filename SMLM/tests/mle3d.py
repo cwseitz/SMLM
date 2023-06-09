@@ -20,15 +20,27 @@ class MLE3D_Test:
         self.eta = 0.8
         self.N0 = 1000
         self.B0 = 0
-        self.zmin = 400.0
+        self.zmin = 100.0
         self.alpha = 6e-7
         self.beta = 6e-7
         self.x0 = 10.0
         self.y0 = 10.0
-        self.z0 = 5.0
+        self.z0 = 2.0
         self.thetagt = np.array([self.x0,self.y0,self.z0*self.pixel_size,self.sigma,self.N0])
         self.cmos_params = [self.L,self.eta,self.texp,self.gain,self.var]
         self.dfcs_params = [self.zmin,self.alpha,self.beta]
+        
+    def plot_defocus(self):
+        fig,ax=plt.subplots()
+        zspace = np.linspace(-2*self.zmin,2*self.zmin,100)
+        sigma_x = self.sigma + self.alpha*(self.zmin-zspace)**2
+        sigma_y = self.sigma + self.beta*(self.zmin+zspace)**2
+        ax.plot(zspace,sigma_x,color='red')
+        ax.plot(zspace,sigma_y,color='blue')
+        ymin,ymax = sigma_x.min(), sigma_x.max()
+        ax.vlines(-self.zmin,ymin,ymax,color='black',linestyle='--')
+        ax.vlines(self.zmin,ymin,ymax,color='black',linestyle='--')
+        plt.show()
         
     def test(self):
         iso3d = Iso3D(self.thetagt,
@@ -45,12 +57,12 @@ class MLE3D_Test:
         theta0 = np.zeros_like(self.thetagt)
         theta0[0] = self.thetagt[0] + np.random.normal(0,1)
         theta0[1] = self.thetagt[1] + np.random.normal(0,1)
-        theta0[2] = self.thetagt[2] + np.random.normal(0,1)
+        theta0[2] = self.thetagt[2] + np.random.normal(0,100)
         theta0[3] = self.thetagt[3]
         theta0[4] = self.thetagt[4]
         adu = iso3d.generate(plot=True)
-        lr = np.array([0.001,0.001,0.001,0,0]) #hyperpar
-        opt = MLEOptimizer3D(theta0,adu,self.cmos_params,self.dfcs_params)
-        theta, loglike = opt.optimize(iters=200,lr=lr)
-        print(self.thetagt)
-        print(theta)
+        self.plot_defocus()
+        lr = np.array([0.001,0.001,0.1,0,0]) #hyperpar
+        opt = MLEOptimizer3D(theta0,adu,self.cmos_params,self.dfcs_params,theta_gt=self.thetagt)
+        theta, loglike = opt.optimize(iters=500,lr=lr,plot=True)
+

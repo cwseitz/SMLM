@@ -5,7 +5,7 @@ from .jac3d import *
 from .ill3d import *
 
 class MLEOptimizer3D:
-   def __init__(self,theta0,adu,cmos_params,dfcs_params,theta_gt):
+   def __init__(self,theta0,adu,cmos_params,dfcs_params,theta_gt=None):
        self.theta0 = theta0
        self.adu = adu
        self.cmos_params = cmos_params

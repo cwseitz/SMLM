@@ -1,7 +1,7 @@
 import numpy as np
-from SMLM.tests import MLE2DNewton_Test
+from SMLM.tests import *
 
-mle2dtest = MLE2DNewton_Test()
+mle2dtest = MLE2DGrad_Test()
 mle2dtest.test()
 
 

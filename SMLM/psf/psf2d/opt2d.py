@@ -7,17 +7,34 @@ from .jac2d import *
 from .hess2d import *
 
 class MLEOptimizer2DGrad:
-    def __init__(self,theta0,adu,cmos_params):
+    def __init__(self,theta0,adu,cmos_params,theta_gt=None):
         self.theta0 = theta0
         self.adu = adu
         self.cmos_params = cmos_params
-    def plot(self,theta0,theta):
-        fig, ax = plt.subplots()
-        ax.imshow(self.adu,cmap='gray')
-        ax.scatter([theta0[0]],[theta0[1]],marker='x',color='red')
-        ax.scatter([theta[0]],[theta[1]],marker='x',color='blue')
+        self.theta_gt = theta_gt
+    def plot(self,thetat,iters):
+        fig,ax = plt.subplots(1,4,figsize=(10,2))
+        ax[0].plot(thetat[:,0])
+        ax[0].hlines(y=self.theta_gt[0],xmin=0,xmax=iters,color='red')
+        ax[0].set_xlabel('Iteration')
+        ax[0].set_ylabel('x')
+        ax[1].plot(thetat[:,1])
+        ax[1].hlines(y=self.theta_gt[1],xmin=0,xmax=iters,color='red')
+        ax[1].set_xlabel('Iteration')
+        ax[1].set_ylabel('y')
+        ax[2].plot(thetat[:,2])
+        ax[2].hlines(y=self.theta_gt[2],xmin=0,xmax=iters,color='red')
+        ax[2].set_xlabel('Iteration')
+        ax[2].set_ylabel(r'$\sigma$')
+        ax[3].plot(thetat[:,3])
+        ax[3].hlines(y=self.theta_gt[3],xmin=0,xmax=iters,color='red')
+        ax[3].set_xlabel('Iteration')
+        ax[3].set_ylabel(r'$N_{0}$')
+        plt.tight_layout()
         plt.show()
     def optimize(self,iters=1000,lr=None,plot=False):
+        if plot:
+            thetat = np.zeros((iters,4))
         if lr is None:
             lr = np.array([0.001,0.001,0,0.01])
         loglike = np.zeros((iters,))
@@ -30,35 +47,53 @@ class MLEOptimizer2DGrad:
             theta[1] -= lr[1]*jac[1]
             theta[2] -= lr[2]*jac[2]
             theta[3] -= lr[3]*jac[3]
+            if plot:
+                thetat[n,:] = theta
         if plot:
-            self.plot(self.theta0,theta)
+            self.plot(thetat,iters)
         return theta, loglike
  
 class MLEOptimizer2DNewton:
-	def __init__(self,theta0,adu,cmos_params):
-		self.theta0 = theta0
-		self.adu = adu
-		self.cmos_params = cmos_params
-	def plot(self,theta0,theta):
-		fig, ax = plt.subplots()
-		ax.imshow(self.adu,cmap='gray')
-		ax.scatter([theta0[0]],[theta0[1]],marker='x',color='red')
-		ax.scatter([theta[0]],[theta[1]],marker='x',color='blue')
-		plt.show()
-	def optimize(self,iters=1000,plot=False):
-		loglike = np.zeros((iters,))
-		theta = np.zeros_like(self.theta0)
-		theta += self.theta0
-		for n in range(iters):
-		    loglike[n] = isologlike2d(theta,self.adu,self.cmos_params)
-		    jac = jaciso2d(theta,self.adu,self.cmos_params)
-		    hess = hessiso_auto2d(theta,self.adu,self.cmos_params)
-		    hessinv = inv(hess)
-		    theta = theta - hessinv @ jac
-		if plot:
-		    self.plot(self.theta0,theta)
-		return theta, loglike
-	 
+    def __init__(self,theta0,adu,cmos_params,theta_gt=None):
+        self.theta0 = theta0
+        self.adu = adu
+        self.cmos_params = cmos_params
+        self.theta_gt = theta_gt
+    def plot(self,thetat,iters):
+       fig,ax = plt.subplots(1,3,figsize=(8,2))
+       ax[0].plot(thetat[:,0])
+       ax[0].hlines(y=self.theta_gt[0],xmin=0,xmax=iters,color='red')
+       ax[0].set_xlabel('Iteration')
+       ax[0].set_ylabel('x')
+       ax[1].plot(thetat[:,1])
+       ax[1].hlines(y=self.theta_gt[1],xmin=0,xmax=iters,color='red')
+       ax[1].set_xlabel('Iteration')
+       ax[1].set_ylabel('y')
+       ax[2].plot(thetat[:,2])
+       ax[2].hlines(y=self.theta_gt[2],xmin=0,xmax=iters,color='red')
+       ax[2].set_xlabel('Iteration')
+       ax[2].set_ylabel(r'$\sigma$')
+       plt.tight_layout()
+       plt.show()
+    def optimize(self,iters=1000,plot=False):
+        if plot:
+            thetat = np.zeros((iters,4))
+        loglike = np.zeros((iters,))
+        theta = np.zeros_like(self.theta0)
+        theta += self.theta0
+        for n in range(iters):
+            loglike[n] = isologlike2d(theta,self.adu,self.cmos_params)
+            jac = jaciso2d(theta,self.adu,self.cmos_params)
+            hess = hessiso_auto2d(theta,self.adu,self.cmos_params)
+            diag = np.diagonal(hess)
+            dd = np.nan_to_num(jac/diag)
+            theta = theta - dd
+            if plot:
+                thetat[n,:] = theta
+        if plot:
+            self.plot(thetat,iters)
+        return theta, loglike
+     
 class SGLDOptimizer2D:
     def __init__(self,theta0,adu,cmos_params):
         self.theta0 = theta0
