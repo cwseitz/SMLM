@@ -112,7 +112,7 @@ class CRB3D_Test2:
     def plot(self):
         theta0 = np.zeros_like(self.thetagt)
         theta0 += self.thetagt
-        z0space = self.pixel_size*np.linspace(-10,10,10)
+        z0space = self.pixel_size*np.linspace(-4,4,10)
         rmse = self.rmse_mle_batch(z0space)
         crlb_z0 = self.crlb(z0space,theta0)
         fig, ax = plt.subplots(figsize=(3,4))
@@ -141,11 +141,13 @@ class CRB3D_Test2:
             theta0 += theta
             theta0[0] += np.random.normal(0,1)
             theta0[1] += np.random.normal(0,1)
-            theta0[2] += np.random.normal(0,100)
+            theta0[2] += np.random.normal(0,1)
             opt = MLEOptimizer3D(theta0,adu,self.cmos_params,self.dfcs_params,theta)
-            theta_est,loglike = opt.optimize(iters=300,plot=False)
+            theta_est,loglike = opt.optimize(iters=1000,plot=True)
             err[n,:] = theta_est - theta
             del iso3d
+        plt.hist(err[:,2])
+        plt.show()
         return np.sqrt(np.var(err,axis=0))
            
 

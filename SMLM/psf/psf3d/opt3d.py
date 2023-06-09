@@ -11,7 +11,7 @@ class MLEOptimizer3D:
        self.cmos_params = cmos_params
        self.dfcs_params = dfcs_params
        self.theta_gt = theta_gt
-   def plot(self,thetat):
+   def plot(self,thetat,iters):
        fig,ax = plt.subplots(1,3,figsize=(8,2))
        ax[0].plot(thetat[:,0])
        ax[0].set_xlabel('Iteration')
@@ -22,13 +22,14 @@ class MLEOptimizer3D:
        ax[2].plot(thetat[:,2])
        ax[2].set_xlabel('Iteration')
        ax[2].set_ylabel('z')
+       ax[2].hlines(y=self.theta_gt[2],xmin=0,xmax=iters,color='red')
        plt.tight_layout()
        plt.show()
    def optimize(self,iters=1000,lr=None,plot=False):
        if plot:
            thetat = np.zeros((iters,5))
        if lr is None:
-           lr = np.array([0.001,0.001,10.0,0,0])
+           lr = np.array([0.001,0.001,0.001,0,0])
        loglike = np.zeros((iters,))
        theta = np.zeros_like(self.theta0)
        theta += self.theta0
@@ -39,6 +40,6 @@ class MLEOptimizer3D:
            if plot:
                thetat[n,:] = theta
        if plot:
-           self.plot(thetat)
+           self.plot(thetat,iters)
        return theta, loglike
        

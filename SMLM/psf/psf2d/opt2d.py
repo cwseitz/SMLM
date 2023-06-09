@@ -1,10 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from numpy.linalg import inv
 from .psf2d import *
 from .ill2d import *
 from .jac2d import *
+from .hess2d import *
 
-class MLEOptimizer2D:
+class MLEOptimizer2DGrad:
     def __init__(self,theta0,adu,cmos_params):
         self.theta0 = theta0
         self.adu = adu
@@ -32,6 +34,31 @@ class MLEOptimizer2D:
             self.plot(self.theta0,theta)
         return theta, loglike
  
+class MLEOptimizer2DNewton:
+	def __init__(self,theta0,adu,cmos_params):
+		self.theta0 = theta0
+		self.adu = adu
+		self.cmos_params = cmos_params
+	def plot(self,theta0,theta):
+		fig, ax = plt.subplots()
+		ax.imshow(self.adu,cmap='gray')
+		ax.scatter([theta0[0]],[theta0[1]],marker='x',color='red')
+		ax.scatter([theta[0]],[theta[1]],marker='x',color='blue')
+		plt.show()
+	def optimize(self,iters=1000,plot=False):
+		loglike = np.zeros((iters,))
+		theta = np.zeros_like(self.theta0)
+		theta += self.theta0
+		for n in range(iters):
+		    loglike[n] = isologlike2d(theta,self.adu,self.cmos_params)
+		    jac = jaciso2d(theta,self.adu,self.cmos_params)
+		    hess = hessiso_auto2d(theta,self.adu,self.cmos_params)
+		    hessinv = inv(hess)
+		    theta = theta - hessinv @ jac
+		if plot:
+		    self.plot(self.theta0,theta)
+		return theta, loglike
+	 
 class SGLDOptimizer2D:
     def __init__(self,theta0,adu,cmos_params):
         self.theta0 = theta0
