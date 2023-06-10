@@ -2,14 +2,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 from SMLM.generators import Iso3D
 from SMLM.psf.psf3d import *
+from skimage.filters import gaussian
 
-class MLE3D_Test:
-    """Test a single instance of MLE for 3D psf"""
+class SGLD3D_Test:
+    """Test a single instance of MLE for 3D PSF"""
     def __init__(self):
         self.L = 20
         self.gain0 = 2.2
         self.offset0 = 0.0
-        self.var0 = 100.0
+        self.var0 = 200.0
         mat = np.ones((self.L,self.L))
         self.gain = self.gain0*mat
         self.offset = self.offset0*mat
@@ -28,7 +29,7 @@ class MLE3D_Test:
         self.z0 = 400.0
         self.sigma_x = sx(self.sigma,self.z0,self.zmin,self.alpha)
         self.sigma_y = sy(self.sigma,self.z0,self.zmin,self.beta)
-        self.thetagt = np.array([self.x0,self.y0,self.sigma,self.sigma_x,self.sigma_y,self.N0])
+        self.thetagt = np.array([self.x0,self.y0,self.sigma_x,self.sigma_y,self.N0])
         self.cmos_params = [self.L,self.eta,self.texp,self.gain,self.var]
         self.dfcs_params = [self.zmin,self.alpha,self.beta]
         
@@ -56,13 +57,11 @@ class MLE3D_Test:
         theta0 = np.zeros_like(self.thetagt)
         theta0[0] = self.thetagt[0] + np.random.normal(0,1)
         theta0[1] = self.thetagt[1] + np.random.normal(0,1)
-        theta0[2] = self.thetagt[2]
-        theta0[3] = self.thetagt[2]
-        theta0[4] = self.thetagt[2]
-        theta0[5] = self.thetagt[5]
-        adu = iso3d.generate(plot=False)
+        theta0[2] = self.sigma
+        theta0[3] = self.sigma
+        theta0[4] = self.N0
+        adu = iso3d.generate(plot=True)
         #self.plot_defocus()
-        lr = np.array([0.0001,0.0001,0,0.0001,0.0001,0]) #hyperpar
-        opt = MLEOptimizer3D(theta0,adu,self.cmos_params,self.dfcs_params,theta_gt=self.thetagt)
-        theta, loglike = opt.optimize(iters=100,lr=lr,plot=True)
+        opt = SGLDOptimizer3D(theta0,adu,self.cmos_params,self.dfcs_params,theta_gt=self.thetagt)
+        opt.optimize(iters=5000,plot=True)
 

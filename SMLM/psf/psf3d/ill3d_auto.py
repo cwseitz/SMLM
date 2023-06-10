@@ -16,7 +16,7 @@ def lamy(Y,y0,sigma_y):
 def isologlike_auto3d(adu,eta,texp,gain,var):
     def isologlike(theta,adu=adu,gain=gain,var=var):
         lx, ly = adu.shape
-        x0,y0,sigma,sigma_x,sigma_y,N0 = theta
+        x0,y0,sigma_x,sigma_y,N0 = theta
         x = np.arange(0,lx); y = np.arange(0,ly)
         X,Y = np.meshgrid(x,y)
         lam = lamx(X,x0,sigma_x)*lamy(Y,y0,sigma_y)

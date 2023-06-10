@@ -29,7 +29,7 @@ class Iso3D:
         
     def get_srate(self):
         ntheta = self.theta.shape
-        x0,y0,sigma,sigma_x,sigma_y,N0 = self.theta
+        x0,y0,sigma_x,sigma_y,N0 = self.theta
         x = np.arange(0,self.L); y = np.arange(0,self.L)
         X,Y = np.meshgrid(x,y)
         lam = lamx(X,x0,sigma_x)*lamy(Y,y0,sigma_y)
