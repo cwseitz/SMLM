@@ -4,15 +4,12 @@
 
 		"arch": {
 				"type": "LocalizationCNN",
-				"args": {
-		"n_channels": 1,
-		"n_classes": 2
-	}
+				"args": {"nz": 100, "scaling_factor": 800, "dilation_flag": true}
 		},
 		"data_loader": {
 				"type": "SMLMDataLoader",
 				"args":{
-						"data_dir": "/home/cwseitz/Desktop/test/",
+						"data_dir": "/home/cwseitz/Desktop/test/Sim_r3e5i7k7-adu.tif",
 						"batch_size": 5,
 						"shuffle": true,
 						"validation_split": 0.2,
@@ -27,7 +24,7 @@
 						"amsgrad": true
 				}
 		},
-		"loss": "CrossEntropyLoss",
+		"loss": "KDE_loss3D",
 		"lr_scheduler": {
 				"type": "StepLR",
 				"args": {
@@ -43,5 +40,6 @@
 				"monitor": "min val_loss",
 				"early_stop": 10,
 				"tensorboard": true
-		}
+		},
+		"metrics": {}
 }

@@ -16,12 +16,12 @@ class Conv2DLeakyReLUBN(nn.Module):
         return out
         
 class LocalizationCNN(nn.Module):
-    def __init__(self, setup_params):
+    def __init__(self, nz, scaling_factor, dilation_flag=True):
         super(LocalizationCNN, self).__init__()
         self.norm = nn.BatchNorm2d(num_features=1, affine=True)
         self.layer1 = Conv2DLeakyReLUBN(1, 64, 3, 1, 1, 0.2)
         self.layer2 = Conv2DLeakyReLUBN(64 + 1, 64, 3, 1, 1, 0.2)
-        if setup_params['dilation_flag']:
+        if dilation_flag:
             self.layer3 = Conv2DLeakyReLUBN(64 + 1, 64, 3, (2, 2), (2, 2), 0.2)
             self.layer4 = Conv2DLeakyReLUBN(64 + 1, 64, 3, (4, 4), (4, 4), 0.2)
             self.layer5 = Conv2DLeakyReLUBN(64 + 1, 64, 3, (8, 8), (8, 8), 0.2)
@@ -33,11 +33,11 @@ class LocalizationCNN(nn.Module):
             self.layer6 = Conv2DLeakyReLUBN(64 + 1, 64, 3, 1, 1, 0.2)
         self.deconv1 = Conv2DLeakyReLUBN(64 + 1, 64, 3, 1, 1, 0.2)
         self.deconv2 = Conv2DLeakyReLUBN(64, 64, 3, 1, 1, 0.2)
-        self.layer7 = Conv2DLeakyReLUBN(64, setup_params['D'], 3, 1, 1, 0.2)
-        self.layer8 = Conv2DLeakyReLUBN(setup_params['D'], setup_params['D'], 3, 1, 1, 0.2)
-        self.layer9 = Conv2DLeakyReLUBN(setup_params['D'], setup_params['D'], 3, 1, 1, 0.2)
-        self.layer10 = nn.Conv2d(setup_params['D'], setup_params['D'], kernel_size=1, dilation=1)
-        self.pred = nn.Hardtanh(min_val=0.0, max_val=setup_params['scaling_factor'])
+        self.layer7 = Conv2DLeakyReLUBN(64, nz, 3, 1, 1, 0.2)
+        self.layer8 = Conv2DLeakyReLUBN(nz, nz, 3, 1, 1, 0.2)
+        self.layer9 = Conv2DLeakyReLUBN(nz, nz, 3, 1, 1, 0.2)
+        self.layer10 = nn.Conv2d(nz, nz, kernel_size=1, dilation=1)
+        self.pred = nn.Hardtanh(min_val=0.0, max_val=scaling_factor)
 
     def forward(self, im):
 

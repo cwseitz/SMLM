@@ -122,13 +122,13 @@ class TimeSeries3D:
                                                         self.zhrange,
                                                         grid_shape)
         self.spikes = boolean_grid_sparse
-        indices = boolean_grid_sparse.coalesce().indices()
-        values = boolean_grid_sparse.coalesce().values()
-        size = boolean_grid_sparse.size()
+        #indices = boolean_grid_sparse.coalesce().indices()
+        #values = boolean_grid_sparse.coalesce().values()
+        #size = boolean_grid_sparse.size()
 
         # Create a scipy sparse matrix
-        print(values)
-        sparse_matrix = sp.csc_matrix((values, indices), shape=size)
+        #print(values)
+        #sparse_matrix = sp.csc_matrix((values, indices), shape=size)
         
     def shot_noise(self,rate):
         nt,nx,ny = rate.shape
@@ -152,12 +152,12 @@ class TimeSeries3D:
         unique_id = ''.join(secrets.choice(characters) for i in range(8))
         fname = 'Sim_' + unique_id
         imsave(datapath+fname+'-adu.tif',self.adu,imagej=True)
-        imsave(datapath+fname+'-signal_adu.tif',self.signal_adu,imagej=True)
-        imsave(datapath+fname+'-backrd_adu.tif',self.backrd_adu,imagej=True)
-        imsave(datapath+fname+'-rnoise_adu.tif',self.rnoise_adu,imagej=True)
+        #imsave(datapath+fname+'-signal_adu.tif',self.signal_adu,imagej=True)
+        #imsave(datapath+fname+'-backrd_adu.tif',self.backrd_adu,imagej=True)
+        #imsave(datapath+fname+'-rnoise_adu.tif',self.rnoise_adu,imagej=True)
         with open(datapath+fname+'.json', 'w') as f:
             json.dump(self.config, f)
-        np.savez(datapath+fname+'_spikes.npz',spikes=self.spikes)
-        np.savez(datapath+fname+'_ssa.npz',state=self.state)
-        np.savez(datapath+fname+'_xyz_np.npz',xyz_np=self.xyz_np)
+        #np.savez(datapath+fname+'_spikes.npz',spikes=self.spikes)
+        #np.savez(datapath+fname+'_ssa.npz',state=self.state)
+        #np.savez(datapath+fname+'_xyz_np.npz',xyz_np=self.xyz_np)
 
