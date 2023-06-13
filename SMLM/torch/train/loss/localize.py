@@ -46,39 +46,35 @@ def GaussianKernel(shape=(7, 7, 7), sigma=1, normfactor=1):
     if maxh != 0:
         h /= maxh
         h = h * normfactor
-    h = torch.from_numpy(h).type(torch.FloatTensor).cuda() # Variable()
+    h = torch.from_numpy(h).type(torch.FloatTensor)
     h = h.unsqueeze(0)
     h = h.unsqueeze(1)
     return h
 
 
 # define the 3D extended loss function from DeepSTORM
-class KDE_loss3D(nn.Module):
-    def __init__(self, factor):
-        super(KDE_loss3D, self).__init__()
-        self.kernel = GaussianKernel()
-        self.factor = factor
 
-    def forward(self, pred_bol, target_bol):
+def KDE_loss3D(pred_bol, target_bol, factor=800):
 
-        # extract kernel dimensions
-        N, C, D, H, W = self.kernel.size()
-        
-        # extend prediction and target to have a single channel
-        target_bol = target_bol.unsqueeze(1)
-        pred_bol = pred_bol.unsqueeze(1)
+    kernel = GaussianKernel()
+    # extract kernel dimensions
+    N, C, D, H, W = kernel.size()
+    
+    # extend prediction and target to have a single channel
+    target_bol = target_bol.unsqueeze(1)
+    pred_bol = pred_bol.unsqueeze(1)
 
-        # KDE for both input and ground truth spikes
-        Din = F.conv3d(pred_bol, self.kernel, padding=(int(np.round((D - 1) / 2)), 0, 0))
-        Dtar = F.conv3d(target_bol, self.factor*self.kernel, padding=(int(np.round((D - 1) / 2)), 0, 0))
+    # KDE for both input and ground truth spikes
+    Din = F.conv3d(pred_bol, kernel, padding=(int(np.round((D - 1) / 2)), 0, 0))
+    Dtar = F.conv3d(target_bol, factor*kernel, padding=(int(np.round((D - 1) / 2)), 0, 0))
 
-        # kde loss
-        kde_loss = nn.MSELoss()(Din, Dtar)
-        
-        # final loss
-        final_loss = kde_loss + dice_loss(pred_bol/self.factor, target_bol)
+    # kde loss
+    kde_loss = nn.MSELoss()(Din, Dtar)
+    
+    # final loss
+    final_loss = kde_loss + dice_loss(pred_bol/factor, target_bol)
 
-        return final_loss
+    return final_loss
 
 
 # calculates the jaccard coefficient approximation using per-voxel probabilities

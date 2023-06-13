@@ -4,18 +4,9 @@
 
 		"arch": {
 				"type": "LocalizationCNN",
-				"args": {"nz": 100, "scaling_factor": 800, "dilation_flag": true}
+				"args": {"nz": 121, "scaling_factor": 800, "dilation_flag": true}
 		},
-		"data_loader": {
-				"type": "SMLMDataLoader",
-				"args":{
-						"data_dir": "/home/cwseitz/Desktop/test/Sim_r3e5i7k7-adu.tif",
-						"batch_size": 5,
-						"shuffle": true,
-						"validation_split": 0.2,
-						"num_workers": 2
-				}
-		},
+		"data_loader": {},
 		"optimizer": {
 				"type": "Adam",
 				"args":{

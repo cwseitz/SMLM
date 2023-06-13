@@ -10,10 +10,10 @@ def batch_xyz_to_boolean_grid(xyz_np, upsampling_factor, pixel_size_lateral, pix
     # number of particles
     batch_size, num_particles, nfeatures = xyz_np.shape
     pixel_size_lateral /= upsampling_factor
-    zshift = xyz_np[:, :, 2] + zhrange/pixel_size_axial
+    zshift = xyz_np[:,:,2] + zhrange/pixel_size_axial
         
-    xg = (np.floor(xyz_np[:, :, 0]/pixel_size_lateral)).astype('int')
-    yg = (np.floor(xyz_np[:, :, 1]/pixel_size_lateral)).astype('int')
+    xg = (np.floor(xyz_np[:,:,0]/pixel_size_lateral)).astype('int')
+    yg = (np.floor(xyz_np[:,:,1]/pixel_size_lateral)).astype('int')
     zg = (np.floor(zshift/pixel_size_axial)).astype('int')
     
     # indices for sparse tensor
@@ -34,9 +34,9 @@ def batch_xyz_to_boolean_grid(xyz_np, upsampling_factor, pixel_size_lateral, pix
     
     # resulting 3D boolean tensor
     if batch_size > 1:
-        boolean_grid = torch.sparse.FloatTensor(ibool, vals, torch.Size([batch_size, D, H, W]))
+        boolean_grid = torch.sparse.FloatTensor(ibool, vals, torch.Size([batch_size, D, H, W])).to_dense()
     else:
-        boolean_grid = torch.sparse.FloatTensor(ibool, vals, torch.Size([D, H, W]))
+        boolean_grid = torch.sparse.FloatTensor(ibool, vals, torch.Size([D, H, W])).to_dense()
         
     return boolean_grid
 

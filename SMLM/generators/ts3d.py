@@ -79,7 +79,6 @@ class TimeSeries3D:
         self.rnoise_adu = self.rnoise_adu.astype(np.int16) #round
         
         self.adu = self.signal_adu + self.backrd_adu + self.rnoise_adu
-        self.boolean_grid()
 
     def get_brate(self):
         nt = int(round(self.T/self.texp))
@@ -113,23 +112,6 @@ class TimeSeries3D:
                 self.srate[t,patchx:patchx+2*patch_hw,patchy:patchy+2*patch_hw] += mu
                 self.xyz_np[t,n] = [x0,y0,z0,fon]
         
-    def boolean_grid(self,upsample=4):
-        nt = int(round(self.T/self.texp))
-        grid_shape = (self.nx,self.ny,self.nz)
-        boolean_grid_sparse = batch_xyz_to_boolean_grid(self.xyz_np,upsample,
-                                                        self.pixel_size_lateral,
-                                                        self.pixel_size_axial,
-                                                        self.zhrange,
-                                                        grid_shape)
-        self.spikes = boolean_grid_sparse
-        #indices = boolean_grid_sparse.coalesce().indices()
-        #values = boolean_grid_sparse.coalesce().values()
-        #size = boolean_grid_sparse.size()
-
-        # Create a scipy sparse matrix
-        #print(values)
-        #sparse_matrix = sp.csc_matrix((values, indices), shape=size)
-        
     def shot_noise(self,rate):
         nt,nx,ny = rate.shape
         electrons = np.zeros_like(rate)
@@ -146,18 +128,26 @@ class TimeSeries3D:
             noise_adu[n] = np.clip(noise_adu[n],0,None)
         return noise_adu
         
+    def save_spikes(self,datapath,fname,upsample=4):
+        nt = int(round(self.T/self.texp))
+        grid_shape = (self.nx,self.ny,self.nz)
+        for t in range(nt):
+            boolean_grid =\
+            batch_xyz_to_boolean_grid(self.xyz_np[t],upsample,self.pixel_size_lateral,
+                                      self.pixel_size_axial,self.zhrange,grid_shape)
+            np.savez(datapath+fname+f'_spikes_{t}.npz',spikes=boolean_grid)
+            #size_in_bytes = boolean_grid.element_size() * boolean_grid.numel()
+            #print(f"Size in bytes: {size_in_bytes}")
+  
     def save(self):
         datapath = self.config['datapath']
         characters = string.ascii_lowercase + string.digits
         unique_id = ''.join(secrets.choice(characters) for i in range(8))
         fname = 'Sim_' + unique_id
         imsave(datapath+fname+'-adu.tif',self.adu,imagej=True)
-        #imsave(datapath+fname+'-signal_adu.tif',self.signal_adu,imagej=True)
-        #imsave(datapath+fname+'-backrd_adu.tif',self.backrd_adu,imagej=True)
-        #imsave(datapath+fname+'-rnoise_adu.tif',self.rnoise_adu,imagej=True)
+        os.mkdir(datapath + '/spikes',exist_ok=True)
+        self.save_spikes(datapath+'/spikes',fname)
         with open(datapath+fname+'.json', 'w') as f:
             json.dump(self.config, f)
-        #np.savez(datapath+fname+'_spikes.npz',spikes=self.spikes)
-        #np.savez(datapath+fname+'_ssa.npz',state=self.state)
-        #np.savez(datapath+fname+'_xyz_np.npz',xyz_np=self.xyz_np)
+
 

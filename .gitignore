@@ -1,2 +1,2 @@
-SMLM/examples/train/saved/models/*
+SMLM/mains/torch/detect3d/saved/*
 *__pycache__*
