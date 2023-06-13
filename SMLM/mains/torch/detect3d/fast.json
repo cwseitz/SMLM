@@ -12,12 +12,16 @@
 		"T": 100,
 		"nx": 256,
 		"ny": 256,
+		"nz": 100,
 		"eta": 0.8,
 		"gain": "cmos/gain.npz",
 		"offset": "cmos/offset.npz",
 		"var": "cmos/var.npz",
 		"sigma": 0.92,
-		"N0": 500,
+		"N0": 1000,
 		"B0": 0,
+		"alpha": 6e-7,
+		"beta": 6e-7,
+		"zmin": 400,
 		"pixel_size": 108.3
 }

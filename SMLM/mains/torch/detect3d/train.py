@@ -12,7 +12,7 @@ import SMLM.torch.models as module_arch
 
 from SMLM.torch.utils import ConfigParser
 from SMLM.torch.utils import prepare_device
-from SMLM.torch.train import UNETTrainer
+from SMLM.torch.train import LocalizationTrainer
 
 config_path = 'train.json'
 file = open(config_path)
@@ -38,12 +38,11 @@ trainable_params = filter(lambda p: p.requires_grad, model.parameters())
 optimizer = config.init_obj('optimizer', torch.optim, trainable_params)
 lr_scheduler = config.init_obj('lr_scheduler', torch.optim.lr_scheduler, optimizer)
 
-trainer = UNETTrainer(model, criterion, metrics, optimizer,
-                      config=config,
-                      device=device,
-                      data_loader=data_loader,
-                      valid_data_loader=valid_data_loader,
-                      lr_scheduler=lr_scheduler)
+trainer = LocalizationTrainer(model, criterion, metrics, optimizer,
+                              config=config,device=device,
+                              data_loader=data_loader,
+                              valid_data_loader=valid_data_loader,
+                              lr_scheduler=lr_scheduler)
                                           
 trainer.train()
 

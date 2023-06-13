@@ -12,7 +12,7 @@ from scipy.special import factorial
 
 from SSA._SSA import photoswitch
 from .bin_ssa import bin_ssa
-from ..psf import *
+from ..psf.psf3d.psf3d import *
 from perlin_noise import PerlinNoise
 
 class TimeSeries3D:
@@ -24,6 +24,7 @@ class TimeSeries3D:
         self.T = config['T']
         self.nx = config['nx']
         self.ny = config['ny']
+        self.nz = config['nz']
         self.eta = config['eta']
         self.gain = np.load(config['gain'])['arr_0']
         self.offset = np.load(config['offset'])['arr_0']
@@ -31,13 +32,17 @@ class TimeSeries3D:
         self.sigma = config['sigma']
         self.N0 = config['N0']
         self.B0 = config['B0']
+        self.alpha = config['alpha']
+        self.beta = config['beta']
+        self.zmin = config['zmin']
         self.pixel_size = config['pixel_size']
         self.kvec = np.array([config['k12'],config['k23'],config['k34'],config['k21'],config['k31'],config['k41']]) 
         self.kvec = 1e-3*self.kvec      
+        self.zhrange = 2000.0
         self.theta = np.zeros((5,self.particles))
         self.theta[0,:] = np.random.uniform(10,self.nx-10,self.particles)
         self.theta[1,:] = np.random.uniform(10,self.ny-10,self.particles)
-        self.theta[2,:] = np.random.uniform(-5.0,5.0,self.particles)
+        self.theta[2,:] = np.random.uniform(-self.zhrange,self.zhrange,self.particles)
         self.theta[3,:] = self.sigma
         self.theta[4,:] = self.N0
         self.nparams,self.nparticles = self.theta.shape
@@ -71,7 +76,7 @@ class TimeSeries3D:
         self.rnoise_adu = self.rnoise_adu.astype(np.int16) #round
         
         self.adu = self.signal_adu + self.backrd_adu + self.rnoise_adu
-        self.segment()
+        self.get_spikes()
 
     def get_brate(self):
         nt = int(round(self.T/self.texp))
@@ -96,33 +101,29 @@ class TimeSeries3D:
                 x0,y0,z0,sigma,N0 = self.theta[:,n]
                 patchx, patchy = int(round(x0))-patch_hw, int(round(y0))-patch_hw
                 x0p = x0-patchx; y0p = y0-patchy
-                sigma_x, sigma_y = defocus_func(z0,sigma,zmin,ab)
-                alpha_x = np.sqrt(2)*sigma_x
-                alpha_y = np.sqrt(2)*sigma_y
-                lambdx = 0.5*(erf((X+0.5-x0p)/alpha_x)-erf((X-0.5-x0p)/alpha_x))
-                lambdy = 0.5*(erf((Y+0.5-y0p)/alpha_y)-erf((Y-0.5-y0p)/alpha_y))
-                lam = lambdx*lambdy
+                sigma_x = sx(sigma,z0,self.zmin,self.alpha)
+                sigma_y = sy(sigma,z0,self.zmin,self.beta)
+                lam = lamx(X,x0p,sigma_x)*lamy(Y,y0p,sigma_y)
                 fon = self.state[n,0,t*self.r:self.r*(t+1)]
                 fon = np.sum(fon)/len(fon)
                 mu = fon*self.texp*self.eta*N0*lam
                 self.srate[t,patchx:patchx+2*patch_hw,patchy:patchy+2*patch_hw] += mu
                 if fon > 0:
-                    gtmat.append([t,fon,x0,y0])     
+                    gtmat.append([t,fon,x0,y0,z0])     
         self.gtmat = np.array(gtmat)
         
-    def segment(self,upsample=1):
+    def get_spikes(self,upsample=4):
         nt = int(round(self.T/self.texp))
-        npix = int(upsample*self.nx)
-        self.mask = np.zeros((nt,2,npix,npix),dtype=np.bool)
+        self.spikes = []
         for n in range(nt):
            rows = self.gtmat[self.gtmat[:,0] == n]
-           xpos = rows[:,2]
-           ypos = rows[:,3]
-           rr = [[0,self.nx],[0,self.nx]]
-           vals, xedges, yedges = np.histogram2d(xpos,ypos,bins=npix,range=rr,density=False)
-           vals[vals > 1] = 1
-           self.mask[n,0,:,:] = vals
-           self.mask[n,1,:,:] = np.abs(vals-1)
+           pos = rows[:,2:5]
+           rr = [[0,self.nx],[0,self.nx],[-self.zhrange,self.zhrange]]
+           bins = [upsample*self.nx,upsample*self.nx,self.nz]
+           for point in pos:
+               idx = tuple(int(np.floor((p - r[0]) / (r[1] - r[0]) * b)) for p, r, b in zip(point, rr, bins))
+               self.spikes.append(idx)
+        self.spikes = np.array(self.spikes)
    
     def shot_noise(self,rate):
         nt,nx,ny = rate.shape
@@ -151,7 +152,7 @@ class TimeSeries3D:
         imsave(datapath+fname+'-rnoise_adu.tif',self.rnoise_adu,imagej=True)
         with open(datapath+fname+'.json', 'w') as f:
             json.dump(self.config, f)
-        np.savez(datapath+fname+'_mask.npz',mask=self.mask)
+        np.savez(datapath+fname+'_mask.npz',spikes=self.spikes)
         np.savez(datapath+fname+'_ssa.npz',state=self.state)
         np.savez(datapath+fname+'_gtmat.npz',gtmat=self.gtmat)
 

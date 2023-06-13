@@ -13,6 +13,7 @@ from scipy.special import factorial
 from SSA._SSA import photoswitch
 from .bin_ssa import bin_ssa
 from perlin_noise import PerlinNoise
+from ..psf.psf2d.psf2d import *
 
 class TimeSeries2D:
     def __init__(self,config):
@@ -94,10 +95,7 @@ class TimeSeries2D:
                 x0,y0,sigma,N0 = self.theta[:,n]
                 patchx, patchy = int(round(x0))-patch_hw, int(round(y0))-patch_hw
                 x0p = x0-patchx; y0p = y0-patchy
-                alpha = np.sqrt(2)*sigma
-                lambdx = 0.5*(erf((X+0.5-x0p)/alpha)-erf((X-0.5-x0p)/alpha))
-                lambdy = 0.5*(erf((Y+0.5-y0p)/alpha)-erf((Y-0.5-y0p)/alpha))
-                lam = lambdx*lambdy
+                lam = lamx(X,x0,sigma)*lamy(Y,y0,sigma)
                 fon = self.state[n,0,t*self.r:self.r*(t+1)]
                 fon = np.sum(fon)/len(fon)
                 mu = fon*self.texp*self.eta*N0*lam

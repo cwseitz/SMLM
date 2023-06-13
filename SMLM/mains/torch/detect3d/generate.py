@@ -6,5 +6,4 @@ with open('fast.json', 'r') as f:
 
 g = TimeSeries3D(config)
 g.generate()
-g.segment()
 g.save()

@@ -1,2 +1,2 @@
-from .locn_trainer import *
+from .loco_trainer import *
 from .unet_trainer import *
