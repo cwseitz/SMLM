@@ -23,5 +23,6 @@
 		"alpha": 6e-7,
 		"beta": 6e-7,
 		"zmin": 400,
-		"pixel_size": 108.3
+		"pixel_size_lateral": 108.3,
+		"zhrange": 2000.0
 }
