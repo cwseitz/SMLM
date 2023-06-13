@@ -1,5 +1,5 @@
 {
-		"particles": 100,
+		"particles": 20,
 		"texp": 1.0,
 		"nx": 121,
 		"ny": 121,
