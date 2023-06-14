@@ -23,7 +23,7 @@ train_config = json.load(file)
 train_config = ConfigParser(train_config)
 logger = train_config.get_logger('train')
 
-generator_config = 'generate.json'
+generator_config = 'setup.json'
 file = open(generator_config)
 generator_config = json.load(file)
 generator = Mix3D(generator_config)

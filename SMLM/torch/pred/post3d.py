@@ -12,14 +12,16 @@ def tensor_to_np(x):
 
 # post-processing on GPU: thresholding and local maxima finding
 class Postprocess3D(Module):
-    def __init__(self, thresh, radius, setup_params):
+    def __init__(self,setup_config,pred_config,device='cpu'):
         super().__init__()
-        self.thresh = thresh
-        self.r = radius
-        self.device = setup_params['device']
-        self.psize_xy = setup_params['pixel_size_rec']
-        self.psize_z = setup_params['pixel_size_axial']
-        self.zmin = setup_params['zmin']
+        self.setup_config = setup_config
+        self.pred_config = pred_config
+        self.device = device
+        self.thresh = pred_config['thresh']
+        self.r = pred_config['radius']
+        self.pixel_size_lateral = setup_config['pixel_size_lateral']
+        self.pixel_size_axial = 2*setup_config['zhrange']/setup_config['nz']
+        self.zmin = setup_config['zhrange']/self.pixel_size_axial
         self.upsampling_shift = 0  # 2 due to floor(W/2) affected by upsampling factor of 4
         self.maxpool = MaxPool3d(kernel_size=2*self.r + 1, stride=1, padding=self.r)
         self.pad = ConstantPad3d(self.r, 0.0)
@@ -101,9 +103,9 @@ class Postprocess3D(Module):
             D, H, W = conf_vol.size()
 
             # calculate the recovered positions assuming mid-voxel
-            xrec = (xbool + xloc - np.floor(W / 2) + self.upsampling_shift + 0.5) * self.psize_xy
-            yrec = (ybool + yloc - np.floor(H / 2) + self.upsampling_shift + 0.5) * self.psize_xy
-            zrec = (zbool + zloc + 0.5) * self.psize_z + self.zmin
+            xrec = (xbool + xloc - np.floor(W / 2) + self.upsampling_shift + 0.5) * self.pixel_size_lateral
+            yrec = (ybool + yloc - np.floor(H / 2) + self.upsampling_shift + 0.5) * self.pixel_size_lateral
+            zrec = (zbool + zloc + 0.5) * self.pixel_size_axial + self.zmin
 
             # rearrange the result into a Nx3 array
             xyz_rec = np.column_stack((xrec, yrec, zrec))
