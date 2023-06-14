@@ -4,7 +4,6 @@ import torch
 import numpy as np
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
-from SMLM.psf2d import mixloglike, jacmix, jacmix_auto
 from SMLM.torch.utils import prepare_device
 from SMLM.torch.models import UNetModel
 

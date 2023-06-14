@@ -34,9 +34,9 @@ def batch_xyz_to_boolean_grid(xyz_np, upsampling_factor, pixel_size_lateral, pix
     
     # resulting 3D boolean tensor
     if batch_size > 1:
-        boolean_grid = torch.sparse.FloatTensor(ibool, vals, torch.Size([batch_size, D, H, W])).to_dense()
+        boolean_grid = torch.sparse_coo_tensor(ibool, vals, torch.Size([batch_size, D, H, W])).to_dense()
     else:
-        boolean_grid = torch.sparse.FloatTensor(ibool, vals, torch.Size([D, H, W])).to_dense()
+        boolean_grid = torch.sparse_coo_tensor(ibool, vals, torch.Size([D, H, W])).to_dense()
         
     return boolean_grid
 

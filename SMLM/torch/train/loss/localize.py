@@ -46,7 +46,7 @@ def GaussianKernel(shape=(7, 7, 7), sigma=1, normfactor=1):
     if maxh != 0:
         h /= maxh
         h = h * normfactor
-    h = torch.from_numpy(h).type(torch.FloatTensor)
+    h = torch.from_numpy(h).type(torch.FloatTensor).cuda()
     h = h.unsqueeze(0)
     h = h.unsqueeze(1)
     return h

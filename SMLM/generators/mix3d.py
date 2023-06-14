@@ -50,7 +50,6 @@ class Mix3D:
         rnoise_adu = rnoise_adu.astype(np.int16) #round
         adu = signal_adu + backrd_adu + rnoise_adu
         adu = np.clip(adu,0,None)
-        adu = torch.from_numpy(adu)
         spikes = self.get_spikes(np.array(xyz_npt))
         return adu, spikes
 

@@ -11,7 +11,6 @@ def jaccard_coeff(pred, target):
     pred: tensor with first dimension as batch
     target: tensor with first dimension as batch
     """
-
     # smoothing parameter
     smooth = 1e-6
     
