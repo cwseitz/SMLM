@@ -89,7 +89,6 @@ class Mix3D:
         
     def get_spikes(self,xyz_np,upsample=4):
         grid_shape = (self.config['nx'],self.config['ny'],self.config['nz'])
-        print(grid_shape)
         boolean_grid = batch_xyz_to_boolean_grid(xyz_np,
                                                  upsample,
                                                  self.config['pixel_size_lateral'],

@@ -4,7 +4,7 @@
 
 		"arch": {
 				"type": "LocalizationCNN",
-				"args": {"nz": 1, "scaling_factor": 800, "dilation_flag": true}
+				"args": {"nz": 10, "scaling_factor": 800, "dilation_flag": true}
 		},
 		"data_loader": {},
 		"optimizer": {

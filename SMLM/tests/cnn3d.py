@@ -29,33 +29,22 @@ class CNN3D_Test:
         model.load_state_dict(checkpoint['state_dict'])
         model.eval()
         return model,device
-    def forward(self,stack,show=False):
-        stack = stack.astype(np.float32)
-        stack = torch.unsqueeze(torch.from_numpy(stack),1)
-        stack = stack.to(self.device)
-        output = self.model(stack)
+    def forward(self,npframe,show=False):
+        npframe = npframe.astype(np.float32)
+        frame = torch.unsqueeze(torch.from_numpy(npframe),1)
+        frame = frame.to(self.device)
+        output = self.model(frame)
+        xyz_pred = self.pprocessor.forward(output)
         if show:
-            im1 = torch.squeeze(stack).cpu().detach().numpy()
-            im2 = torch.squeeze(output).cpu().detach().numpy()
-            fig,ax=plt.subplots(1,2)
-            ax[0].imshow(im1)
-            ax[1].imshow(im2)
+            fig,ax=plt.subplots(1,3)
+            conf_vol = self.pprocessor.get_conf_vol(output)
+            mx = np.squeeze(output.cpu().detach().numpy())
+            npvol = np.squeeze(conf_vol.cpu().detach().numpy())
+            mxvol = np.max(npvol,axis=0)
+            mx = np.max(mx,axis=0)
+            ax[0].imshow(np.squeeze(npframe),cmap='gray')
+            ax[1].imshow(mx,cmap='gray')
+            ax[2].imshow(mxvol,cmap='gray')
             plt.show()
-        #xyz = self.pprocessor.forward(output)
-        output = torch.squeeze(output).cpu().detach().numpy()
-        coord = peak_local_max(output,threshold_abs=100,min_distance=5)
-        return coord
+        return xyz_pred
         
-class Mix3D_Test:
-    def __init__(self,setup_config):
-        self.setup_config = setup_config
-        self.generator = Mix3D(setup_config)
-    def forward(self,nsamples=10,show=False):
-        for n in range(nsamples):
-            sample, target = self.generator.generate()
-            target = target.cpu().detach().numpy()
-            target = np.max(target,axis=0)
-            fig, ax = plt.subplots(1,2)
-            ax[0].imshow(sample[0])
-            ax[1].imshow(target)
-            plt.show()

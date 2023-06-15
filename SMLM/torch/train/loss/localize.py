@@ -75,7 +75,7 @@ def KDE_loss3D(pred_bol, target_bol, factor=800):
     dice = dice_loss(pred_bol/factor, target_bol)
 
     final_loss = kde_loss + dice
-    print(kde_loss, dice)
+
     return final_loss
 
 
