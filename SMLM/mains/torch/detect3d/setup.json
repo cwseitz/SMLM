@@ -1,9 +1,9 @@
 {
-		"particles": 20,
+		"particles": 50,
 		"texp": 1.0,
 		"nx": 121,
 		"ny": 121,
-		"nz": 121,
+		"nz": 1,
 		"eta": 0.8,
 		"gain": "cmos/gain.npz",
 		"offset": "cmos/offset.npz",
@@ -15,5 +15,5 @@
 		"beta": 6e-7,
 		"zmin": 400,
 		"pixel_size_lateral": 108.3,
-		"zhrange": 2000.0
+		"zhrange": 800.0
 }

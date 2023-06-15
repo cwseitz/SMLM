@@ -1,4 +1,4 @@
-# Import modules and libraries
+import matplotlib.pyplot as plt
 import numpy as np
 import torch
 from torch.nn import Module, MaxPool3d, ConstantPad3d
@@ -7,11 +7,11 @@ from torch.nn.functional import conv3d
 
 # convert gpu tensors to numpy
 def tensor_to_np(x):
-    return np.squeeze(x.cpu().numpy())
+    return np.squeeze(x.cpu().detach().numpy())
 
 
 # post-processing on GPU: thresholding and local maxima finding
-class Postprocess3D(Module):
+class PostProcessor3D(Module):
     def __init__(self,setup_config,pred_config,device='cpu'):
         super().__init__()
         self.setup_config = setup_config
@@ -19,10 +19,10 @@ class Postprocess3D(Module):
         self.device = device
         self.thresh = pred_config['thresh']
         self.r = pred_config['radius']
-        self.pixel_size_lateral = setup_config['pixel_size_lateral']
+        self.pixel_size_lateral = setup_config['pixel_size_lateral']/4
         self.pixel_size_axial = 2*setup_config['zhrange']/setup_config['nz']
         self.zmin = setup_config['zhrange']/self.pixel_size_axial
-        self.upsampling_shift = 0  # 2 due to floor(W/2) affected by upsampling factor of 4
+        self.upsampling_shift = 0
         self.maxpool = MaxPool3d(kernel_size=2*self.r + 1, stride=1, padding=self.r)
         self.pad = ConstantPad3d(self.r, 0.0)
         self.zero = torch.FloatTensor([0.0]).to(self.device)
@@ -78,8 +78,11 @@ class Postprocess3D(Module):
 
         # find locations of confs (bigger than 0)
         conf_vol = torch.squeeze(conf_vol)
+        
         batch_indices = torch.nonzero(conf_vol)
         zbool, ybool, xbool = batch_indices[:, 0], batch_indices[:, 1], batch_indices[:, 2]
+
+
 
         # if the prediction is empty return None otherwise convert to list of locations
         if len(zbool) == 0:
@@ -97,16 +100,24 @@ class Postprocess3D(Module):
 
             # convert lists and tensors to numpy
             xloc, yloc, zloc = tensor_to_np(xloc), tensor_to_np(yloc), tensor_to_np(zloc)
+            
             xbool, ybool, zbool = tensor_to_np(xbool), tensor_to_np(ybool), tensor_to_np(zbool)
 
             # dimensions of the prediction
             D, H, W = conf_vol.size()
 
             # calculate the recovered positions assuming mid-voxel
-            xrec = (xbool + xloc - np.floor(W / 2) + self.upsampling_shift + 0.5) * self.pixel_size_lateral
-            yrec = (ybool + yloc - np.floor(H / 2) + self.upsampling_shift + 0.5) * self.pixel_size_lateral
-            zrec = (zbool + zloc + 0.5) * self.pixel_size_axial + self.zmin
+            #xrec = (xbool + xloc - np.floor(W / 2) + self.upsampling_shift + 0.5) * self.pixel_size_lateral
+            #yrec = (ybool + yloc - np.floor(H / 2) + self.upsampling_shift + 0.5) * self.pixel_size_lateral
+            #zrec = (zbool + zloc + 0.5) * self.pixel_size_axial + self.zmin
 
+            #xrec = (xbool + 0.5) * self.pixel_size_lateral
+            #yrec = (ybool + 0.5) * self.pixel_size_lateral
+            #zrec = (zbool + 0.5) * self.pixel_size_axial
+            xrec = xbool
+            yrec = ybool
+            zrec = zbool
+            
             # rearrange the result into a Nx3 array
             xyz_rec = np.column_stack((xrec, yrec, zrec))
 
@@ -114,4 +125,5 @@ class Postprocess3D(Module):
             conf_rec = conf_vol[zbool, ybool, xbool]
             conf_rec = tensor_to_np(conf_rec)
 
-        return xyz_rec, conf_rec
+        return xyz_rec
+

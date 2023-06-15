@@ -47,10 +47,17 @@ class LocalizationTrainer(BaseTrainer):
             data, target = data.to(self.device, dtype=torch.float), target.to(self.device, dtype=torch.float)
             self.optimizer.zero_grad()
             output = self.model(data)
+            nb,nc,nx,ny = target.shape
+            
+            #fig,ax=plt.subplots(1,3)
+            #ax[0].imshow(np.max(target[0,:].cpu().detach().numpy(),axis=0))
+            #ax[1].imshow(np.max(output[0,:].cpu().detach().numpy(),axis=0))
+            #ax[2].imshow(data[0,0,:].cpu().detach().numpy())
+            #plt.show()
+                
             loss = self.criterion(output, target)
             loss.backward()
             self.optimizer.step()
-
             self.writer.set_step((epoch - 1) * self.len_epoch + batch_idx)
             self.train_metrics.update('loss', loss.item())
             for met in self.metric_ftns:

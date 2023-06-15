@@ -6,3 +6,4 @@ from .crb3d import *
 from .jac3d import *
 from .mle3d import *
 from .sgld3d import *
+from .cnn3d import *

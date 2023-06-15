@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np
-
+import matplotlib.pyplot as plt
 
 def dice_loss(pred, target):
     """
@@ -72,8 +72,10 @@ def KDE_loss3D(pred_bol, target_bol, factor=800):
     kde_loss = nn.MSELoss()(Din, Dtar)
     
     # final loss
-    final_loss = kde_loss + dice_loss(pred_bol/factor, target_bol)
+    dice = dice_loss(pred_bol/factor, target_bol)
 
+    final_loss = kde_loss + dice
+    print(kde_loss, dice)
     return final_loss
 
 

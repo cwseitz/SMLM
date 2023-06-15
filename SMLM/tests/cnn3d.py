@@ -5,11 +5,13 @@ import numpy as np
 import torch.nn.functional as F
 import matplotlib.pyplot as plt
 import napari
+from SMLM.generators import Mix3D
 from SMLM.torch.utils import prepare_device
 from SMLM.torch.models import LocalizationCNN
-from .post3d import PostProcessor3D
+from SMLM.torch.pred import PostProcessor3D
+from skimage.feature import peak_local_max
 
-class NeuralEstimator3D:
+class CNN3D_Test:
     def __init__(self,setup_config,train_config,pred_config,modelpath,modelname):
         self.modelpath = modelpath
         self.modelname = modelname
@@ -32,9 +34,28 @@ class NeuralEstimator3D:
         stack = torch.unsqueeze(torch.from_numpy(stack),1)
         stack = stack.to(self.device)
         output = self.model(stack)
-        xyz = self.pprocessor.forward(output)
-        return xyz
+        if show:
+            im1 = torch.squeeze(stack).cpu().detach().numpy()
+            im2 = torch.squeeze(output).cpu().detach().numpy()
+            fig,ax=plt.subplots(1,2)
+            ax[0].imshow(im1)
+            ax[1].imshow(im2)
+            plt.show()
+        #xyz = self.pprocessor.forward(output)
+        output = torch.squeeze(output).cpu().detach().numpy()
+        coord = peak_local_max(output,threshold_abs=100,min_distance=5)
+        return coord
         
-        
-        
-        
+class Mix3D_Test:
+    def __init__(self,setup_config):
+        self.setup_config = setup_config
+        self.generator = Mix3D(setup_config)
+    def forward(self,nsamples=10,show=False):
+        for n in range(nsamples):
+            sample, target = self.generator.generate()
+            target = target.cpu().detach().numpy()
+            target = np.max(target,axis=0)
+            fig, ax = plt.subplots(1,2)
+            ax[0].imshow(sample[0])
+            ax[1].imshow(target)
+            plt.show()

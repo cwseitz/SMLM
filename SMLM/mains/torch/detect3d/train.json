@@ -4,7 +4,7 @@
 
 		"arch": {
 				"type": "LocalizationCNN",
-				"args": {"nz": 121, "scaling_factor": 800, "dilation_flag": true}
+				"args": {"nz": 1, "scaling_factor": 800, "dilation_flag": true}
 		},
 		"data_loader": {},
 		"optimizer": {
@@ -24,7 +24,7 @@
 				}
 		},
 		"trainer": {
-				"epochs": 10,
+				"epochs": 50,
 				"save_dir": "saved/",
 				"save_period": 1,
 				"verbosity": 2,
@@ -32,5 +32,5 @@
 				"early_stop": 10,
 				"tensorboard": true
 		},
-		"metrics": ["jaccard_coeff"]
+		"metrics": []
 }
