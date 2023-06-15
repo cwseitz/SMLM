@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 def match(xyz_pred,xyz_true,threshold=3):
-    distances = cdist(xyz_true,xyz_pred)
+    distances = cdist(xyz_true[:,:2],xyz_pred[:,:2])
     xyz_pred_matched = []
     xyz_true_matched = []
     for i in range(len(xyz_true)):
@@ -55,7 +55,9 @@ for n in range(1):
     xyz_pred[:,0] = xyz_pred[:,0]/4.0
     xyz_pred[:,1] = xyz_pred[:,1]/4.0
     show_pred(sample,xyz_pred,xyz_true)
-    #xyz_pred_matched, xyz_true_matched = match(xyz_pred,xyz_true)
+    xyz_pred_matched, xyz_true_matched = match(xyz_pred,xyz_true)
+    print(xyz_pred_matched)
+    print(xyz_true_matched)
     #xerr, yerr = get_errors(xyz_pred_matched, xyz_true_matched)
     #xerrs.append(xerr); yerrs.append(yerr)
 
