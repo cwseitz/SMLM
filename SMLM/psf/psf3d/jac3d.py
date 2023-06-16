@@ -13,7 +13,7 @@ def jaciso3d(theta,adu,cmos_params,dfcs_params):
     return J
     
 def jaciso_auto3d(theta,adu,cmos_params,dfcs_params):
-    L,eta,texp,gain,var = cmos_params
+    nx,ny,eta,texp,gain,offset,var = cmos_params
     zmin,alpha,beta = dfcs_params
     ntheta = len(theta)
     theta = theta.reshape((ntheta,))

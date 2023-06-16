@@ -6,10 +6,12 @@ from .psf3d import *
 
 
 def isologlike3d(theta,adu,cmos_params,dfcs_params):
-    x0,y0,sigma,sigma_x,sigma_y,N0 = theta
+    x0,y0,z0,sigma,N0 = theta
     zmin,alpha,beta = dfcs_params
-    L,eta,texp,gain,var = cmos_params
-    x = np.arange(0,L); y = np.arange(0,L)
+    nx,ny,eta,texp,gain,offset,var = cmos_params
+    sigma_x = sx(sigma,z0,zmin,alpha)
+    sigma_y = sy(sigma,z0,zmin,beta)
+    x = np.arange(0,nx); y = np.arange(0,ny)
     X,Y = np.meshgrid(x,y)
     lam = lamx(X,x0,sigma_x)*lamy(Y,y0,sigma_y)
     i0 = gain*eta*texp*N0

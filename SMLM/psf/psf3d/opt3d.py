@@ -7,11 +7,16 @@ from .hess3d import *
 from numpy.linalg import inv
 
 class MLEOptimizer3D:
-   def __init__(self,theta0,adu,cmos_params,dfcs_params,theta_gt=None):
+   def __init__(self,theta0,adu,setup_params,theta_gt=None):
        self.theta0 = theta0
        self.adu = adu
-       self.cmos_params = cmos_params
-       self.dfcs_params = dfcs_params
+       self.setup_params = setup_params
+       self.cmos_params = [setup_params['nx'],setup_params['ny'],
+                           setup_params['eta'],setup_params['texp'],
+                            np.load(setup_params['gain'])['arr_0'],
+                            np.load(setup_params['offset'])['arr_0'],
+                            np.load(setup_params['var'])['arr_0']]
+       self.dfcs_params = [setup_params['zmin'],setup_params['alpha'],setup_params['beta']]
        self.theta_gt = theta_gt
    def plot(self,thetat,iters):
        fig,ax = plt.subplots(1,4,figsize=(8,2))
@@ -35,7 +40,7 @@ class MLEOptimizer3D:
        plt.show()
    def optimize(self,iters=1000,lr=None,plot=False):
        if plot:
-           thetat = np.zeros((iters,6))
+           thetat = np.zeros((iters,5))
        if lr is None:
            lr = np.array([0.001,0.001,0.001,0,0])
        loglike = np.zeros((iters,))
@@ -43,7 +48,7 @@ class MLEOptimizer3D:
        theta += self.theta0
        for n in range(iters):
            loglike[n] = isologlike3d(theta,self.adu,self.cmos_params,self.dfcs_params)
-           jac = jaciso_auto3d(theta,self.adu,self.cmos_params,self.dfcs_params)
+           jac = jaciso3d(theta,self.adu,self.cmos_params,self.dfcs_params)
            theta = theta - lr*jac
            if plot:
                thetat[n,:] = theta

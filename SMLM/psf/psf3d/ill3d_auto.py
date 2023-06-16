@@ -13,11 +13,19 @@ def lamy(Y,y0,sigma_y):
     alpha_y = np.sqrt(2)*sigma_y
     return 0.5*(erf((Y+0.5-y0)/alpha_y)-erf((Y-0.5-y0)/alpha_y))
 
+def sx(sigma,z0,zmin,alpha):
+    return sigma + alpha*(z0+zmin)**2
+    
+def sy(sigma,z0,zmin,beta):
+    return sigma + beta*(z0-zmin)**2
+
 def isologlike_auto3d(adu,eta,texp,gain,var):
     def isologlike(theta,adu=adu,gain=gain,var=var):
-        lx, ly = adu.shape
-        x0,y0,sigma_x,sigma_y,N0 = theta
-        x = np.arange(0,lx); y = np.arange(0,ly)
+        nx,ny = adu.shape
+        x0,y0,z0,sigma,N0 = theta
+        sigma_x = sx(sigma,z0,zmin,alpha)
+        sigma_y = sy(sigma,z0,zmin,beta)
+        x = np.arange(0,nx); y = np.arange(0,ny)
         X,Y = np.meshgrid(x,y)
         lam = lamx(X,x0,sigma_x)*lamy(Y,y0,sigma_y)
         i0 = N0*eta*gain*texp

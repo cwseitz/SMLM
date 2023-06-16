@@ -1,0 +1,20 @@
+{
+		"texp": 1.0,
+		"nx": 20,
+		"ny": 20,
+		"eta": 0.8,
+		"gain": "cmos/gain.npz",
+		"offset": "cmos/offset.npz",
+		"var": "cmos/var.npz",
+		"sigma": 0.92,
+		"N0": 1000,
+		"B0": 0,
+		"alpha": 6e-7,
+		"beta": 6e-7,
+		"zmin": 400,
+		"pixel_size_lateral": 108.3,
+		"zhrange": 400.0,
+		"x0": 10,
+		"y0": 10,
+		"z0": 400.0
+}

@@ -50,7 +50,7 @@ def duds0(X,Y,x0,y0,sigma_x,sigma_y):
     
 def jac1(X,Y,theta,cmos_params,dfcs_params):
     x0,y0,sigma_x,sigma_y,N0 = theta
-    L,eta,texp,gain,var = cmos_params
+    nx,ny,eta,texp,gain,offset,var = cmos_params
     zmin,alpha,beta = dfcs_params
     i0 = N0*eta*gain*texp
     j_x0 = i0*dudx0(X,Y,x0,y0,sigma_x,sigma_y)
@@ -63,7 +63,7 @@ def jac1(X,Y,theta,cmos_params,dfcs_params):
     
 def jac2(adu,X,Y,theta,cmos_params,dfcs_params):
     x0,y0,sigma_x,sigma_y,N0 = theta
-    L, eta,texp,gain,var = cmos_params
+    nx,ny,eta,texp,gain,offset,var = cmos_params
     zmin,alpha,beta = dfcs_params
     i0 = N0*eta*gain*texp
     lam = lamx(X,x0,sigma_x)*lamy(Y,y0,sigma_y)
