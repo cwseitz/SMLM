@@ -17,7 +17,7 @@ def jaciso_auto3d(theta,adu,cmos_params,dfcs_params):
     zmin,alpha,beta = dfcs_params
     ntheta = len(theta)
     theta = theta.reshape((ntheta,))
-    ill = isologlike_auto3d(adu,eta,texp,gain,var)
+    ill = isologlike_auto3d(adu,eta,texp,gain,var,zmin,alpha,beta)
     jacobian_ = jacobian(ill)
     jac = jacobian_(theta)
     return jac

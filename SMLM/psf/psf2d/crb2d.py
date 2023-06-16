@@ -4,10 +4,10 @@ from .psf2d import *
 
 def crlb2d(theta,cmos_params):
     ntheta = len(theta)
-    L,eta,texp,gain,var = cmos_params
+    nx,ny,eta,texp,gain,offset,var = cmos_params
     x0,y0,sigma,N0 = theta
     alpha = np.sqrt(2)*sigma
-    x = np.arange(0,L); y = np.arange(0,L)
+    x = np.arange(0,nx); y = np.arange(0,ny)
     X,Y = np.meshgrid(x,y)
     lam = lamx(X,x0,sigma)*lamy(Y,y0,sigma)
     i0 = gain*eta*texp*N0

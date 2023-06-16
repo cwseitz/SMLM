@@ -4,21 +4,20 @@ from scipy.special import erf
 from perlin_noise import PerlinNoise
 
 class Iso2D:
-    def __init__(self,theta,eta,texp,L,gain,offset,var,B0):
+    def __init__(self,theta,setup_params):
         self.theta = theta
-        self.gain = gain #ADU/e-
-        self.offset = offset
-        self.var = var
-        self.texp = texp
-        self.eta = eta
-        self.L = L
-        self.B0 = B0
+        self.setup_params = setup_params
+        self.cmos_params = [setup_params['nx'],setup_params['ny'],
+                           setup_params['eta'],setup_params['texp'],
+                            np.load(setup_params['gain'])['arr_0'],
+                            np.load(setup_params['offset'])['arr_0'],
+                            np.load(setup_params['var'])['arr_0']] 
         
     def generate(self,plot=False):
         srate = self.get_srate()
         brate = self.get_brate()
         electrons = self.shot_noise(srate+brate)              
-        adu = self.gain*(electrons)
+        adu = self.cmos_params[4]*(electrons)
         adu = self.read_noise(adu)
         adu = adu.astype(np.int16) #digitize
         if plot:
@@ -29,20 +28,20 @@ class Iso2D:
         ntheta = self.theta.shape
         x0,y0,sigma,N0 = self.theta
         alpha = np.sqrt(2)*sigma
-        x = np.arange(0,self.L); y = np.arange(0,self.L)
+        x = np.arange(0,self.setup_params['nx']); y = np.arange(0,self.setup_params['ny'])
         X,Y = np.meshgrid(x,y)
         lambdx = 0.5*(erf((X+0.5-x0)/alpha)-erf((X-0.5-x0)/alpha))
         lambdy = 0.5*(erf((Y+0.5-y0)/alpha)-erf((Y-0.5-y0)/alpha))
         lam = lambdx*lambdy
-        rate = N0*self.texp*self.eta*lam
+        rate = self.setup_params['N0']*self.setup_params['texp']*self.setup_params['eta']*lam
         return rate
 
     def get_brate(self):
         noise = PerlinNoise(octaves=10,seed=None)
-        nx,ny = self.L,self.L
+        nx,ny = self.setup_params['nx'],self.setup_params['ny']
         bg = [[noise([i/nx,j/ny]) for j in range(nx)] for i in range(ny)]
         bg = 1 + np.array(bg)
-        bg_rate = self.B0*(bg/bg.max())
+        bg_rate = self.setup_params['B0']*(bg/bg.max())
         return bg_rate
         
     def shot_noise(self,rate):
@@ -51,8 +50,8 @@ class Iso2D:
                 
     def read_noise(self,adu):
         nx,ny = adu.shape
-        noise = np.random.normal(self.offset,np.sqrt(self.var),size=(nx,ny))
-        adu += noise
+        noise = np.random.normal(self.cmos_params[5],np.sqrt(self.cmos_params[6]),size=(nx,ny))
+        adu = adu + noise
         adu = np.clip(adu,0,None)
         return adu
                  

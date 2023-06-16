@@ -9,15 +9,16 @@ class Iso3D:
         self.theta = theta
         self.setup_params = setup_params
         self.cmos_params = [setup_params['nx'],setup_params['ny'],
+                            setup_params['eta'],setup_params['texp'],
                             np.load(setup_params['gain'])['arr_0'],
                             np.load(setup_params['offset'])['arr_0'],
-                            np.load(setup_params['var'])['arr_0']]
+                            np.load(setup_params['var'])['arr_0']] 
         
     def generate(self,plot=False):
         srate = self.get_srate()
         brate = self.get_brate()
         electrons = self.shot_noise(srate+brate)              
-        adu = self.cmos_params[0]*(electrons)
+        adu = self.cmos_params[4]*(electrons)
         adu = self.read_noise(adu)
         adu = adu.astype(np.int16) #digitize
         if plot:
@@ -49,8 +50,8 @@ class Iso3D:
                 
     def read_noise(self,adu):
         nx,ny = self.cmos_params[0],self.cmos_params[1]
-        offset = self.cmos_params[3]
-        var = self.cmos_params[4]
+        offset = self.cmos_params[5]
+        var = self.cmos_params[6]
         noise = np.random.normal(offset,np.sqrt(var),size=(nx,ny))
         adu = adu + noise
         adu = np.clip(adu,0.0,None)

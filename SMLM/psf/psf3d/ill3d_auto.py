@@ -19,8 +19,8 @@ def sx(sigma,z0,zmin,alpha):
 def sy(sigma,z0,zmin,beta):
     return sigma + beta*(z0-zmin)**2
 
-def isologlike_auto3d(adu,eta,texp,gain,var):
-    def isologlike(theta,adu=adu,gain=gain,var=var):
+def isologlike_auto3d(adu,eta,texp,gain,var,zmin,alpha,beta):
+    def isologlike(theta,adu=adu,gain=gain,var=var,zmin=zmin,alpha=alpha,beta=beta):
         nx,ny = adu.shape
         x0,y0,z0,sigma,N0 = theta
         sigma_x = sx(sigma,z0,zmin,alpha)

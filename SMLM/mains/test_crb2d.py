@@ -1,6 +1,9 @@
 from SMLM.tests import CRB2D_Test1
 import matplotlib.pyplot as plt
+import json
 
-crb2dtest = CRB2D_Test1()
-crb2dtest.plot1()
+with open('setup2d.json', 'r') as f:
+    setup_params = json.load(f)
+crb2dtest = CRB2D_Test1(setup_params)
+crb2dtest.plot()
 plt.show()

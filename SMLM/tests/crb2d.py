@@ -6,34 +6,26 @@ from scipy.stats import multivariate_normal
 
 class CRB2D_Test1:
     """Variable SNR"""
-    def __init__(self):
-        self.L = 20
-        self.omat = np.ones((self.L,self.L))
-        self.gain0 = 2.2
-        self.offset0 = 0.0
-        self.var0 = 500.0
-        self.gain = self.gain0*self.omat
-        self.offset = self.offset0*self.omat
-        self.var = self.var0*self.omat
-        self.pixel_size = 108.3
-        self.sigma = 0.22*640/1.4 
-        self.sigma = self.sigma/self.pixel_size
-        self.texp = 1.0
-        self.eta = 0.8
-        self.N0 = 1000
-        self.B0 = 0
-        self.thetagt = np.array([10.0,10.0,self.sigma,self.N0])
-        self.cmos_params = [self.L,self.eta,self.texp,self.gain,self.var]
-           
-    def plot1(self,nn=5):
+    def __init__(self,setup_params):
+        self.setup_params = setup_params
+        self.cmos_params = [setup_params['nx'],setup_params['ny'],
+                           setup_params['eta'],setup_params['texp'],
+                            np.load(setup_params['gain'])['arr_0'],
+                            np.load(setup_params['offset'])['arr_0'],
+                            np.load(setup_params['var'])['arr_0']]  
+        self.thetagt = np.array([self.setup_params['x0'],
+                                 self.setup_params['y0'],
+                                 self.setup_params['sigma'],
+                                 self.setup_params['N0']])          
+    def plot(self,nn=5):
         N0space = np.linspace(100,1000,nn)
         theta0 = np.zeros_like(self.thetagt)
         theta0 += self.thetagt
         crlb_n0 = self.crlb(N0space,theta0)
-        #rmse = self.rmse_mle_batch(N0space)
+        rmse = self.rmse_mle_batch(N0space)
         fig, ax = plt.subplots(figsize=(3,4))
-        ax.loglog(N0space,crlb_n0[:,0],color='red',label=r'$\sigma_{r}^{2}=$'+f'{self.var0}')
-        #ax.loglog(N0space,rmse[:,0],color='red',marker='x')
+        ax.loglog(N0space,crlb_n0[:,0],color='red')
+        ax.loglog(N0space,rmse[:,0],color='red',marker='x')
         ax.set_xlabel('Photons')
         ax.set_ylabel(r'$\sigma_{\mathrm{CRLB}}$ (pixels)')
         plt.legend()
@@ -65,38 +57,19 @@ class CRB2D_Test1:
         theta[3] = n0
         for n in range(nsamples):
             print(f'Error sample {n}')
-            iso2d = Iso2D(theta,self.eta,self.texp,self.L,self.gain,self.offset,self.var,self.B0)
+            iso2d = Iso2D(self.thetagt,self.setup_params)
             adu = iso2d.generate(plot=False)
             theta0 = np.zeros_like(self.thetagt)
             theta0 += theta
             theta0[0] += np.random.normal(0,1)
             theta0[1] += np.random.normal(0,1)
-            opt = MLEOptimizer2D(theta0,adu,self.cmos_params)
+            opt = MLEOptimizer2DGrad(theta0,adu,self.setup_params,theta_gt=self.thetagt)
             theta_est,loglike = opt.optimize(iters=200)
             err[n,:] = theta_est - self.thetagt
             del iso2d
 
         return np.sqrt(np.var(err,axis=0))
 
-    def rmse_sgld2d(self,n0,nsamples=500,iters=1000,tburn=500):
-        err = np.zeros((nsamples,4))
-        theta = np.zeros_like(self.thetagt)
-        theta += self.thetagt
-        theta[3] = n0
-        for n in range(nsamples):
-            print(f'Error sample {n}')
-            iso2d = Iso2D(theta,self.eta,self.texp,self.L,self.gain,self.offset,self.var,self.B0)
-            adu = iso2d.generate(plot=False)
-            theta0 = np.zeros_like(self.thetagt)
-            theta0 += theta
-            theta0[0] += np.random.normal(0,1)
-            theta0[1] += np.random.normal(0,1)
-            opt = SGLDOptimizer2D(theta0,adu,self.cmos_params)
-            theta_est = opt.optimize(iters=iters,tburn=tburn,scatter=False)
-            err[n,:] = theta_est - self.thetagt
-            del iso2d, opt
-
-        return np.sqrt(np.var(err,axis=0))
         
 
 

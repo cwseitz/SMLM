@@ -7,7 +7,14 @@ class MLE3D_Test:
     """Test a single instance of MLE for 3D psf"""
     def __init__(self,setup_params):
         self.setup_params = setup_params
-              
+        self.cmos_params = [setup_params['nx'],setup_params['ny'],
+                           setup_params['eta'],setup_params['texp'],
+                            np.load(setup_params['gain'])['arr_0'],
+                            np.load(setup_params['offset'])['arr_0'],
+                            np.load(setup_params['var'])['arr_0']]  
+        self.dfcs_params = [self.setup_params['zmin'],
+                            self.setup_params['alpha'],
+                            self.setup_params['beta']]            
     def marginal_likelihood(self,idx,adu,nsamples=100):
         paramgt = self.thetagt[idx]
         bounds = [3,3,0.5,0.5,0.5,300]
@@ -39,19 +46,19 @@ class MLE3D_Test:
                                  self.setup_params['y0'],
                                  self.setup_params['z0'],
                                  self.setup_params['sigma'],
-                                 self.setup_params['N0']])  
+                                 self.setup_params['N0']])
+        self.thetagt[2] = np.random.normal(0,100)
         iso3d = Iso3D(self.thetagt,self.setup_params)
         theta0 = np.zeros_like(self.thetagt)
-        theta0[0] = self.thetagt[0] + np.random.normal(0,1)
-        theta0[1] = self.thetagt[1] + np.random.normal(0,1)
-        theta0[2] = self.thetagt[2] + np.random.normal(0,100)
+        theta0[0] = self.thetagt[0] + np.random.normal(0,2)
+        theta0[1] = self.thetagt[1] + np.random.normal(0,2)
+        theta0[2] = 0.0
         theta0[3] = self.thetagt[3]
         theta0[4] = self.thetagt[4]
         adu = iso3d.generate(plot=True)
-        #self.marginal_likelihood(3,adu)
-        #self.marginal_likelihood(4,adu)
+        adu = adu - self.cmos_params[5]
         #self.plot_defocus()
-        lr = np.array([0.0001,0.0001,0.0001,0,0]) #hyperpar
+        lr = np.array([0.0001,0.0001,1.0,0,0]) #hyperpar
         opt = MLEOptimizer3D(theta0,adu,self.setup_params,theta_gt=self.thetagt)
-        theta, loglike = opt.optimize(iters=100,lr=lr,plot=True)
+        theta, loglike = opt.optimize(iters=1000,lr=lr,plot=True)
 
