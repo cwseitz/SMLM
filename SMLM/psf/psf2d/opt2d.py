@@ -41,7 +41,7 @@ class MLEOptimizer2DGrad:
         if plot:
             thetat = np.zeros((iters,4))
         if lr is None:
-            lr = np.array([0.001,0.001,0,0.01])
+            lr = np.array([0.001,0.001,0,0])
         loglike = np.zeros((iters,))
         theta = np.zeros_like(self.theta0)
         theta += self.theta0

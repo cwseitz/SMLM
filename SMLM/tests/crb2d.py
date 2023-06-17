@@ -17,15 +17,14 @@ class CRB2D_Test1:
                                  self.setup_params['y0'],
                                  self.setup_params['sigma'],
                                  self.setup_params['N0']])          
-    def plot(self,nn=5):
+    def plot(self,ax,nn=5):
         N0space = np.linspace(100,1000,nn)
         theta0 = np.zeros_like(self.thetagt)
         theta0 += self.thetagt
         crlb_n0 = self.crlb(N0space,theta0)
         rmse = self.rmse_mle_batch(N0space)
-        fig, ax = plt.subplots(figsize=(3,4))
-        ax.loglog(N0space,crlb_n0[:,0],color='red')
-        ax.loglog(N0space,rmse[:,0],color='red',marker='x')
+        ax.semilogx(N0space,crlb_n0[:,0],color='red')
+        ax.semilogx(N0space,rmse[:,0],color='red',marker='x')
         ax.set_xlabel('Photons')
         ax.set_ylabel(r'$\sigma_{\mathrm{CRLB}}$ (pixels)')
         plt.legend()
@@ -57,15 +56,17 @@ class CRB2D_Test1:
         theta[3] = n0
         for n in range(nsamples):
             print(f'Error sample {n}')
-            iso2d = Iso2D(self.thetagt,self.setup_params)
+            iso2d = Iso2D(theta,self.setup_params)
             adu = iso2d.generate(plot=False)
+            adu = adu - self.cmos_params[5]
             theta0 = np.zeros_like(self.thetagt)
             theta0 += theta
             theta0[0] += np.random.normal(0,1)
             theta0[1] += np.random.normal(0,1)
-            opt = MLEOptimizer2DGrad(theta0,adu,self.setup_params,theta_gt=self.thetagt)
-            theta_est,loglike = opt.optimize(iters=200)
-            err[n,:] = theta_est - self.thetagt
+            opt = MLEOptimizer2DGrad(theta0,adu,self.setup_params,theta_gt=theta)
+            theta_est,loglike = opt.optimize(iters=200,plot=False)
+            this_err = theta_est - theta
+            err[n,:] = this_err
             del iso2d
 
         return np.sqrt(np.var(err,axis=0))

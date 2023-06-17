@@ -11,8 +11,8 @@ def isologlike2d(theta,adu,cmos_params):
     muprm = i0*lam + var
     warnings.filterwarnings("ignore", category=RuntimeWarning)
     stirling = adu * np.nan_to_num(np.log(adu)) - adu
-    warnings.filterwarnings("default", category=RuntimeWarning)
     p = adu*np.log(muprm)
+    warnings.filterwarnings("default", category=RuntimeWarning)
     p = np.nan_to_num(p)
     nll = stirling + muprm - p
     nll = np.sum(nll)

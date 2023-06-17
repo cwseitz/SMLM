@@ -33,7 +33,8 @@ class Iso2D:
         lambdx = 0.5*(erf((X+0.5-x0)/alpha)-erf((X-0.5-x0)/alpha))
         lambdy = 0.5*(erf((Y+0.5-y0)/alpha)-erf((Y-0.5-y0)/alpha))
         lam = lambdx*lambdy
-        rate = self.setup_params['N0']*self.setup_params['texp']*self.setup_params['eta']*lam
+        i0 = N0*self.setup_params['texp']*self.setup_params['eta'] #use theta N0 (not setup_params['N0']) - need to fix this
+        rate = i0*lam
         return rate
 
     def get_brate(self):
