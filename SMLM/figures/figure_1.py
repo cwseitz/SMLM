@@ -1,6 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from SMLM.tests import CRB2D_Test1
+from SMLM.tests import *
 
 class Figure_1:
     """Performance of classical fitting methods on 2D/3D isolated emitter data"""
@@ -9,7 +9,7 @@ class Figure_1:
         self.setup3d_params = setup3d_params
     def plot(self):
         fig, ax = plt.subplots(2,3)
-        self.add_2d_snr(ax[0,0])
+        #self.add_2d_snr(ax[0,0])
         self.add_2d_sgld(ax[1,0])
         self.add_3d_snr(ax[0,1])
         self.add_3d_axial(ax[0,2])
@@ -21,7 +21,8 @@ class Figure_1:
     def add_2d_sgld(self,ax):
         pass
     def add_3d_snr(self,ax):
-        pass
+        test = CRB3D_Test1(self.setup3d_params)
+        test.plot(ax)
     def add_3d_axial(self,ax):
         pass
     def add_3d_hmap(self,ax):

@@ -17,14 +17,15 @@ class MLE3D_Test:
                             self.setup_params['beta']]            
     def marginal_likelihood(self,idx,adu,nsamples=100):
         paramgt = self.thetagt[idx]
-        bounds = [3,3,0.5,0.5,0.5,300]
+        bounds = [3,3,50,0.5,300]
         pbound = bounds[idx]
         param_space = np.linspace(paramgt-pbound,paramgt+pbound,nsamples)
         loglike = np.zeros_like(param_space)
-        theta = self.thetagt
+        theta_ = np.zeros_like(self.thetagt)
+        theta_ = theta_ + self.thetagt
         for n in range(nsamples):
-           theta[idx] = param_space[n]
-           loglike[n] = isologlike3d(theta,adu,self.cmos_params,self.dfcs_params)
+           theta_[idx] = param_space[n]
+           loglike[n] = isologlike3d(theta_,adu,self.cmos_params,self.dfcs_params)
         fig,ax=plt.subplots()
         ax.plot(param_space,loglike,color='red')
         ax.vlines(paramgt,ymin=loglike.min(),ymax=loglike.max(),color='black')
@@ -58,6 +59,7 @@ class MLE3D_Test:
         adu = iso3d.generate(plot=True)
         adu = adu - self.cmos_params[5]
         #self.plot_defocus()
+        self.marginal_likelihood(2,adu)
         lr = np.array([0.0001,0.0001,1.0,0,0]) #hyperpar
         opt = MLEOptimizer3D(theta0,adu,self.setup_params,theta_gt=self.thetagt)
         theta, loglike = opt.optimize(iters=1000,lr=lr,plot=True)

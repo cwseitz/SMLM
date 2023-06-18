@@ -6,38 +6,26 @@ from scipy.stats import multivariate_normal
 
 class CRB3D_Test1:
     """Fixed axial position and variable SNR"""
-    def __init__(self):
-        self.L = 20
-        self.omat = np.ones((self.L,self.L))
-        self.gain0 = 2.2
-        self.offset0 = 0.0
-        self.var0 = 100.0
-        self.gain = self.gain0*self.omat
-        self.offset = self.offset0*self.omat
-        self.var = self.var0*self.omat
-        self.pixel_size = 108.3
-        self.sigma = 0.22*640/1.4 
-        self.sigma = self.sigma/self.pixel_size
-        self.texp = 1.0
-        self.eta = 0.8
-        self.N0 = 1000
-        self.B0 = 0
-        self.zmin = 400.0
-        self.alpha = 6e-7
-        self.beta = 6e-7
-        self.x0 = 10.0
-        self.y0 = 10.0
-        self.z0 = 5.0
-        self.thetagt = np.array([self.x0,self.y0,self.z0*self.pixel_size,self.sigma,self.N0])
-        self.cmos_params = [self.L,self.eta,self.texp,self.gain,self.var]
-        self.dfcs_params = [self.zmin,self.alpha,self.beta]
+    def __init__(self,setup_params):
+        self.setup_params = setup_params
+        self.cmos_params = [setup_params['nx'],setup_params['ny'],
+                           setup_params['eta'],setup_params['texp'],
+                            np.load(setup_params['gain'])['arr_0'],
+                            np.load(setup_params['offset'])['arr_0'],
+                            np.load(setup_params['var'])['arr_0']]  
+        self.thetagt = np.array([self.setup_params['x0'],
+                                 self.setup_params['y0'],
+                                 self.setup_params['z0'],
+                                 self.setup_params['sigma'],
+                                 self.setup_params['N0']]) 
+        self.dfcs_params = [self.setup_params['zmin'],
+                            self.setup_params['alpha'],
+                            self.setup_params['beta']]
+        self.thetagt[2] = np.random.normal(0,100)
         
-    def plot1(self,nn=5):
-        N0space = np.linspace(500,1000,nn)
-        theta0 = np.zeros_like(self.thetagt)
-        theta0 += self.thetagt
+    def plot(self,ax,nn=5):
+        N0space = np.linspace(100,1000,nn)
         rmse = self.rmse_mle_batch(N0space)
-        fig, ax = plt.subplots(figsize=(3,4))
         ax.loglog(N0space,rmse[:,0],color='red',marker='x',label='x')
         ax.loglog(N0space,rmse[:,1],color='blue',marker='x',label='y')
         ax.loglog(N0space,rmse[:,2],color='purple',marker='x',label='z')
@@ -53,15 +41,16 @@ class CRB3D_Test1:
         theta[4] = n0
         for n in range(error_samples):
             print(f'Error sample {n}')
-            iso3d = Iso3D(theta,self.eta,self.texp,self.L,self.gain,self.offset,self.var,self.B0)
+            iso3d = Iso3D(theta,self.setup_params)
             adu = iso3d.generate(plot=False)
             theta0 = np.zeros_like(self.thetagt)
             theta0 += theta
             theta0[0] += np.random.normal(0,1)
             theta0[1] += np.random.normal(0,1)
-            theta0[2] += np.random.normal(0,1)
-            opt = MLEOptimizer3D(theta0,adu,self.cmos_params,self.dfcs_params)
-            theta_est,loglike = opt.optimize(iters=1000)
+            theta0[2] = 0
+            opt = MLEOptimizer3D(theta0,adu,self.setup_params,theta_gt=theta)
+            lr = np.array([0.001,0.001,1.0,0,0])
+            theta_est,loglike = opt.optimize(iters=1000,lr=lr,plot=True)
             err[n,:] = theta_est - self.thetagt
             del iso3d
         return np.sqrt(np.var(err,axis=0))
@@ -83,39 +72,28 @@ class CRB3D_Test1:
 
 class CRB3D_Test2:
     """Fixed SNR and variable axial position"""
-    def __init__(self):
-        self.L = 20
-        self.omat = np.ones((self.L,self.L))
-        self.gain0 = 2.2
-        self.offset0 = 0.0
-        self.var0 = 1.0
-        self.gain = self.gain0*self.omat
-        self.offset = self.offset0*self.omat
-        self.var = self.var0*self.omat
-        self.pixel_size = 108.3
-        self.sigma = 0.22*640/1.4 
-        self.sigma = self.sigma/self.pixel_size
-        self.texp = 1.0
-        self.eta = 0.8
-        self.N0 = 1000
-        self.B0 = 0
-        self.zmin = 400.0
-        self.alpha = 6e-7
-        self.beta = 6e-7
-        self.x0 = 10.0
-        self.y0 = 10.0
-        self.z0 = 5.0
-        self.thetagt = np.array([self.x0,self.y0,self.z0*self.pixel_size,self.sigma,self.N0])
-        self.cmos_params = [self.L,self.eta,self.texp,self.gain,self.var]
-        self.dfcs_params = [self.zmin,self.alpha,self.beta]
+    def __init__(self,setup_params):
+        self.setup_params = setup_params
+        self.cmos_params = [setup_params['nx'],setup_params['ny'],
+                           setup_params['eta'],setup_params['texp'],
+                            np.load(setup_params['gain'])['arr_0'],
+                            np.load(setup_params['offset'])['arr_0'],
+                            np.load(setup_params['var'])['arr_0']]  
+        self.thetagt = np.array([self.setup_params['x0'],
+                                 self.setup_params['y0'],
+                                 self.setup_params['z0'],
+                                 self.setup_params['sigma'],
+                                 self.setup_params['N0']]) 
+        self.dfcs_params = [self.setup_params['zmin'],
+                            self.setup_params['alpha'],
+                            self.setup_params['beta']]
         
-    def plot(self):
+    def plot(self,ax):
         theta0 = np.zeros_like(self.thetagt)
         theta0 += self.thetagt
         z0space = self.pixel_size*np.linspace(-4,4,10)
         rmse = self.rmse_mle_batch(z0space)
         crlb_z0 = self.crlb(z0space,theta0)
-        fig, ax = plt.subplots(figsize=(3,4))
         ax.plot(z0space,self.pixel_size*rmse[:,0],color='red',marker='x',label='x')
         ax.plot(z0space,self.pixel_size*rmse[:,1],color='blue',marker='x',label='y')
         ax.plot(z0space,self.pixel_size*rmse[:,2],color='purple',marker='x',label='z')
@@ -134,8 +112,7 @@ class CRB3D_Test2:
         theta[2] = z0
         for n in range(error_samples):
             print(f'Error sample {n}')
-            iso3d = Iso3D(theta,self.eta,self.texp,self.L,self.gain,
-                          self.offset,self.var,self.B0,self.zmin,self.alpha,self.beta)
+            iso3d = Iso3D(theta,self.setup_params)
             adu = iso3d.generate(plot=False)
             theta0 = np.zeros_like(self.thetagt)
             theta0 += theta
@@ -143,7 +120,7 @@ class CRB3D_Test2:
             theta0[1] += np.random.normal(0,1)
             theta0[2] += np.random.normal(0,1)
             opt = MLEOptimizer3D(theta0,adu,self.cmos_params,self.dfcs_params,theta)
-            theta_est,loglike = opt.optimize(iters=1000,plot=True)
+            theta_est,loglike = opt.optimize(iters=200,plot=True)
             err[n,:] = theta_est - theta
             del iso3d
         plt.hist(err[:,2])
@@ -168,40 +145,28 @@ class CRB3D_Test2:
    
 class CRB3D_Test3:
     """Fixed SNR, fixed axial position, variable zmin, variable A/B"""
-    def __init__(self):
-        self.L = 20
-        self.omat = np.ones((self.L,self.L))
-        self.gain0 = 2.2
-        self.offset0 = 0.0
-        self.var0 = 200.0
-        self.gain = self.gain0*self.omat
-        self.offset = self.offset0*self.omat
-        self.var = self.var0*self.omat
-        self.pixel_size = 108.3
-        self.sigma = 0.22*640/1.4 
-        self.sigma = self.sigma/self.pixel_size
-        self.texp = 1.0
-        self.eta = 0.8
-        self.N0 = 1000
-        self.B0 = 0
-        self.zmin = 400.0
-        self.alpha = 6e-7
-        self.beta = 6e-7
-        self.x0 = 10.0
-        self.y0 = 10.0
-        self.z0 = 5.0
-        self.thetagt = np.array([self.x0,self.y0,self.z0*self.pixel_size,self.sigma,self.N0])
-        self.cmos_params = [self.L,self.eta,self.texp,self.gain,self.var]
-        self.dfcs_params = [self.zmin,self.alpha,self.beta]
+    def __init__(self,setup_params):
+        self.setup_params = setup_params
+        self.cmos_params = [setup_params['nx'],setup_params['ny'],
+                           setup_params['eta'],setup_params['texp'],
+                            np.load(setup_params['gain'])['arr_0'],
+                            np.load(setup_params['offset'])['arr_0'],
+                            np.load(setup_params['var'])['arr_0']]  
+        self.thetagt = np.array([self.setup_params['x0'],
+                                 self.setup_params['y0'],
+                                 self.setup_params['z0'],
+                                 self.setup_params['sigma'],
+                                 self.setup_params['N0']]) 
+        self.dfcs_params = [self.setup_params['zmin'],
+                            self.setup_params['alpha'],
+                            self.setup_params['beta']]
         
-    def plot(self):
+    def plot(self,ax):
         zminspace = np.linspace(10,1000,100)
         abspace = np.linspace(1e-7,1e-5,100)
         theta0 = np.zeros_like(self.thetagt)
         theta0 += self.thetagt
         crlb_map = self.crlb(zminspace,abspace,theta0)
-        
-        fig, ax = plt.subplots(1,3)
         ax[0].imshow(crlb_map[:,:,0],cmap='jet')
         ax[0].set_title('x')
         ax[0].set_xlabel(r'$z_{min}$')
