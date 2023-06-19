@@ -6,8 +6,9 @@ from scipy.stats import multivariate_normal
 
 class CRB3D_Test1:
     """Fixed axial position and variable SNR"""
-    def __init__(self,setup_params):
+    def __init__(self,setup_params,lr,error_samples=500,iters=1000):
         self.setup_params = setup_params
+        self.iters = iters; self.lr = lr
         self.cmos_params = [setup_params['nx'],setup_params['ny'],
                            setup_params['eta'],setup_params['texp'],
                             np.load(setup_params['gain'])['arr_0'],
@@ -21,25 +22,28 @@ class CRB3D_Test1:
         self.dfcs_params = [self.setup_params['zmin'],
                             self.setup_params['alpha'],
                             self.setup_params['beta']]
-        self.thetagt[2] = np.random.normal(0,100)
+        self.thetagt[2] = 0
+        self.error_samples = error_samples
         
     def plot(self,ax,nn=5):
+        pixel_size = self.setup_params['pixel_size_lateral']
         N0space = np.linspace(100,1000,nn)
-        rmse = self.rmse_mle_batch(N0space)
-        ax.loglog(N0space,rmse[:,0],color='red',marker='x',label='x')
-        ax.loglog(N0space,rmse[:,1],color='blue',marker='x',label='y')
-        ax.loglog(N0space,rmse[:,2],color='purple',marker='x',label='z')
+        rmse_mle = self.rmse_mle_batch(N0space)
+        #rmse_sgld = self.rmse_sgld_batch(N0space)
+        ax.semilogx(N0space,pixel_size*rmse_mle[:,0],color='red',marker='x',label='x')
+        ax.semilogx(N0space,pixel_size*rmse_mle[:,1],color='blue',marker='x',label='y')
+        #ax.semilogx(N0space,rmse_mle[:,2],color='purple',marker='x',label='z')
         ax.set_xlabel('Photons')
-        ax.set_ylabel('Localization error (pixels)')
+        ax.set_ylabel('Localization error (nm)')
         plt.legend()
         plt.tight_layout()
-
-    def rmse_mle3d(self,n0,error_samples=500):
-        err = np.zeros((error_samples,5))
+        
+    def rmse_mle3d(self,n0):
+        err = np.zeros((self.error_samples,5))
         theta = np.zeros_like(self.thetagt)
         theta += self.thetagt
         theta[4] = n0
-        for n in range(error_samples):
+        for n in range(self.error_samples):
             print(f'Error sample {n}')
             iso3d = Iso3D(theta,self.setup_params)
             adu = iso3d.generate(plot=False)
@@ -47,33 +51,51 @@ class CRB3D_Test1:
             theta0 += theta
             theta0[0] += np.random.normal(0,1)
             theta0[1] += np.random.normal(0,1)
-            theta0[2] = 0
+            theta0[2] += np.random.uniform(0,100)
             opt = MLEOptimizer3D(theta0,adu,self.setup_params,theta_gt=theta)
-            lr = np.array([0.001,0.001,1.0,0,0])
-            theta_est,loglike = opt.optimize(iters=1000,lr=lr,plot=True)
+            theta_est,loglike = opt.optimize(iters=self.iters,lr=self.lr,plot=False)
             err[n,:] = theta_est - self.thetagt
             del iso3d
         return np.sqrt(np.var(err,axis=0))
-           
-
+        
+    def rmse_sgld3d(self,n0):
+        err = np.zeros((self.error_samples,5))
+        theta = np.zeros_like(self.thetagt)
+        theta += self.thetagt
+        theta[4] = n0
+        for n in range(self.error_samples):
+            print(f'Error sample {n}')
+            iso3d = Iso3D(theta,self.setup_params)
+            adu = iso3d.generate(plot=False)
+            theta0 = np.zeros_like(self.thetagt)
+            theta0 += theta
+            theta0[0] += np.random.normal(0,1)
+            theta0[1] += np.random.normal(0,1)
+            theta0[2] += np.random.uniform(0,100)
+            opt = SGLDSampler3D(theta0,adu,self.setup_params,theta_gt=theta)
+            samples = opt.sample(iters=self.iters,lr=self.lr,plot=False)
+            theta_est = samples[-1,:]
+            err[n,:] = theta_est - self.thetagt
+            del iso3d
+        return np.sqrt(np.var(err,axis=0))
+        
     def rmse_mle_batch(self,N0space):
         errs = np.zeros((len(N0space),5))
         for i,n0 in enumerate(N0space):
             errs[i] = self.rmse_mle3d(n0)
         return errs
  
-     
-    def crlb(self,N0space,theta0,nn=5):
-        crlb_n0 = np.zeros((nn,5))
+    def rmse_sgld_batch(self,N0space):
+        errs = np.zeros((len(N0space),5))
         for i,n0 in enumerate(N0space):
-            theta0[3] = n0
-            crlb_n0[i] = crlb3d(theta0,self.cmos_params,self.dfcs_params)
-        return crlb_n0
+            errs[i] = self.rmse_sgld3d(n0)
+        return errs
 
 class CRB3D_Test2:
     """Fixed SNR and variable axial position"""
-    def __init__(self,setup_params):
+    def __init__(self,setup_params,lr,error_samples=500,iters=1000):
         self.setup_params = setup_params
+        self.iters = iters; self.lr = lr
         self.cmos_params = [setup_params['nx'],setup_params['ny'],
                            setup_params['eta'],setup_params['texp'],
                             np.load(setup_params['gain'])['arr_0'],
@@ -87,30 +109,28 @@ class CRB3D_Test2:
         self.dfcs_params = [self.setup_params['zmin'],
                             self.setup_params['alpha'],
                             self.setup_params['beta']]
+        self.error_samples = error_samples
         
     def plot(self,ax):
         theta0 = np.zeros_like(self.thetagt)
         theta0 += self.thetagt
-        z0space = self.pixel_size*np.linspace(-4,4,10)
+        z0space = np.linspace(-400,400,10)
         rmse = self.rmse_mle_batch(z0space)
-        crlb_z0 = self.crlb(z0space,theta0)
-        ax.plot(z0space,self.pixel_size*rmse[:,0],color='red',marker='x',label='x')
-        ax.plot(z0space,self.pixel_size*rmse[:,1],color='blue',marker='x',label='y')
-        ax.plot(z0space,self.pixel_size*rmse[:,2],color='purple',marker='x',label='z')
-        ax.plot(z0space,self.pixel_size*crlb_z0[:,0],color='red',linestyle='--')
-        ax.plot(z0space,self.pixel_size*crlb_z0[:,1],color='blue',linestyle='--')
-        ax.plot(z0space,crlb_z0[:,2],color='purple',linestyle='--')
+        pixel_size = self.setup_params['pixel_size_lateral']
+        ax.plot(z0space,pixel_size*rmse[:,0],color='red',marker='x',label='x')
+        ax.plot(z0space,pixel_size*rmse[:,1],color='blue',marker='x',label='y')
+        ax.plot(z0space,rmse[:,2],color='purple',marker='x',label='z')
         ax.set_xlabel('z (nm)')
         ax.set_ylabel('Localization error (nm)')
         plt.legend()
         plt.tight_layout()
         
-    def rmse_mle3d(self,z0,error_samples=100):
-        err = np.zeros((error_samples,5))
+    def rmse_mle3d(self,z0):
+        err = np.zeros((self.error_samples,5))
         theta = np.zeros_like(self.thetagt)
         theta += self.thetagt
         theta[2] = z0
-        for n in range(error_samples):
+        for n in range(self.error_samples):
             print(f'Error sample {n}')
             iso3d = Iso3D(theta,self.setup_params)
             adu = iso3d.generate(plot=False)
@@ -119,12 +139,10 @@ class CRB3D_Test2:
             theta0[0] += np.random.normal(0,1)
             theta0[1] += np.random.normal(0,1)
             theta0[2] += np.random.normal(0,1)
-            opt = MLEOptimizer3D(theta0,adu,self.cmos_params,self.dfcs_params,theta)
-            theta_est,loglike = opt.optimize(iters=200,plot=True)
+            opt = MLEOptimizer3D(theta0,adu,self.setup_params,theta_gt=theta)
+            theta_est,loglike = opt.optimize(iters=self.iters,lr=self.lr,plot=False)
             err[n,:] = theta_est - theta
             del iso3d
-        plt.hist(err[:,2])
-        plt.show()
         return np.sqrt(np.var(err,axis=0))
            
 

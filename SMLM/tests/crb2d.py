@@ -18,16 +18,17 @@ class CRB2D_Test1:
                                  self.setup_params['sigma'],
                                  self.setup_params['N0']])          
     def plot(self,ax,nn=5):
+        pixel_size = self.setup_params['pixel_size_lateral']
         N0space = np.linspace(100,1000,nn)
         theta0 = np.zeros_like(self.thetagt)
         theta0 += self.thetagt
         crlb_n0 = self.crlb(N0space,theta0)
         rmse = self.rmse_mle_batch(N0space)
-        ax.semilogx(N0space,crlb_n0[:,0],color='red')
-        ax.semilogx(N0space,rmse[:,0],color='red',marker='x')
+        ax.semilogx(N0space,pixel_size*crlb_n0[:,0],color='blue',label='CRLB')
+        ax.semilogx(N0space,pixel_size*rmse[:,0],color='red',marker='x',label='RMSE')
         ax.set_xlabel('Photons')
-        ax.set_ylabel(r'$\sigma_{\mathrm{CRLB}}$ (pixels)')
-        plt.legend()
+        ax.set_ylabel('Localization error (nm)')
+        ax.legend()
         plt.tight_layout()
        
     def crlb(self,N0space,theta0,nn=5):
