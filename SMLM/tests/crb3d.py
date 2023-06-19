@@ -47,13 +47,14 @@ class CRB3D_Test1:
             print(f'Error sample {n}')
             iso3d = Iso3D(theta,self.setup_params)
             adu = iso3d.generate(plot=False)
+            adu = adu - self.cmos_params[5]
             theta0 = np.zeros_like(self.thetagt)
             theta0 += theta
             theta0[0] += np.random.normal(0,1)
             theta0[1] += np.random.normal(0,1)
             theta0[2] += np.random.uniform(0,100)
             opt = MLEOptimizer3D(theta0,adu,self.setup_params,theta_gt=theta)
-            theta_est,loglike = opt.optimize(iters=self.iters,lr=self.lr,plot=False)
+            theta_est,loglike = opt.optimize(iters=self.iters,lr=self.lr,plot=True)
             err[n,:] = theta_est - self.thetagt
             del iso3d
         return np.sqrt(np.var(err,axis=0))
@@ -67,6 +68,7 @@ class CRB3D_Test1:
             print(f'Error sample {n}')
             iso3d = Iso3D(theta,self.setup_params)
             adu = iso3d.generate(plot=False)
+            adu = adu - self.cmos_params[5]
             theta0 = np.zeros_like(self.thetagt)
             theta0 += theta
             theta0[0] += np.random.normal(0,1)
@@ -128,38 +130,29 @@ class CRB3D_Test2:
     def rmse_mle3d(self,z0):
         err = np.zeros((self.error_samples,5))
         theta = np.zeros_like(self.thetagt)
-        theta += self.thetagt
+        theta = theta + self.thetagt
         theta[2] = z0
         for n in range(self.error_samples):
             print(f'Error sample {n}')
             iso3d = Iso3D(theta,self.setup_params)
             adu = iso3d.generate(plot=False)
+            adu = adu - self.cmos_params[5]
             theta0 = np.zeros_like(self.thetagt)
-            theta0 += theta
+            theta0 = theta0 + theta
             theta0[0] += np.random.normal(0,1)
             theta0[1] += np.random.normal(0,1)
-            theta0[2] += np.random.normal(0,1)
+            theta0[2] = 0
             opt = MLEOptimizer3D(theta0,adu,self.setup_params,theta_gt=theta)
             theta_est,loglike = opt.optimize(iters=self.iters,lr=self.lr,plot=False)
             err[n,:] = theta_est - theta
             del iso3d
         return np.sqrt(np.var(err,axis=0))
            
-
     def rmse_mle_batch(self,z0space):
         errs = np.zeros((len(z0space),5))
         for i,z0 in enumerate(z0space):
             errs[i] = self.rmse_mle3d(z0)
         return errs
- 
-     
-    def crlb(self,z0space,theta0):
-        nz = len(z0space)
-        crlb_z0 = np.zeros((nz,5))
-        for i,z0 in enumerate(z0space):
-            theta0[2] = z0
-            crlb_z0[i] = crlb3d(theta0,self.cmos_params,self.dfcs_params)
-        return crlb_z0
    
 class CRB3D_Test3:
     """Fixed SNR, fixed axial position, variable zmin, variable A/B"""

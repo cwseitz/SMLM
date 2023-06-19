@@ -25,8 +25,9 @@ class SGLD3D_Test:
         adu = iso3d.generate(plot=True)
         adu = adu - self.cmos_params[5]
         lr = np.array([0.0001,0.0001,1.0,0,0]) #hyperpar
-        opt = SGLDOptimizer3D(theta0,adu,self.setup_params,lr=lr,theta_gt=self.thetagt)
-        opt.optimize(iters=1000,plot=True)
+        opt = SGLDSampler3D(theta0,adu,self.setup_params,lr=lr,theta_gt=self.thetagt)
+        samples = opt.sample(iters=1000,plot=True)
+        return samples
 
 
 
