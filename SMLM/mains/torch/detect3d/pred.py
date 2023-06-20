@@ -41,7 +41,7 @@ with open('pred.json', 'r') as f:
     pred_config = json.load(f)
     
 
-modelpath = '/home/cwseitz/git/SMLM/SMLM/mains/torch/detect3d/saved/models/SMLM/0615_163419/'
+modelpath = '/home/cwseitz/git/SMLM/SMLM/mains/torch/detect3d/saved/models/SMLM/0620_002741/'
 modelname='checkpoint-epoch50.pth'
 test = CNN3D_Test(setup_config,train_config,pred_config,modelpath,modelname)
 

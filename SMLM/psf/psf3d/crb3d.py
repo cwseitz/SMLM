@@ -3,11 +3,12 @@ from numpy.linalg import inv
 from .psf3d import *
 
 def crlb3d(theta,cmos_params,dfcs_params):
+    """This is identical to 2D CRLB"""
     ntheta = len(theta)
     x0,y0,z0,sigma,N0 = theta
-    L,eta,texp,gain,var = cmos_params
+    nx,ny,eta,texp,gain,offset,var = cmos_params
     zmin,alpha,beta = dfcs_params
-    x = np.arange(0,L); y = np.arange(0,L)
+    x = np.arange(0,nx); y = np.arange(0,ny)
     X,Y = np.meshgrid(x,y)
     sigma_x = sx(sigma,z0,zmin,alpha)
     sigma_y = sy(sigma,z0,zmin,beta)

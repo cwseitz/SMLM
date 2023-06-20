@@ -10,7 +10,7 @@ class SMLMDataset3D(Dataset):
     def __len__(self):
         return self.num_samples
     def __getitem__(self, idx):
-        data, target = self.generator.generate()
+        data, target, theta = self.generator.generate()
         return data, target
 
 

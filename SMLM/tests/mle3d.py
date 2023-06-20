@@ -33,8 +33,9 @@ class MLE3D_Test:
     def plot_defocus(self):
         fig,ax=plt.subplots()
         zspace = np.linspace(-800,800,100)
-        sigma_x = self.sigma + self.alpha*(self.zmin-zspace)**2
-        sigma_y = self.sigma + self.beta*(self.zmin+zspace)**2
+        zmin,alpha,beta = self.dfcs_params
+        sigma_x = self.setup_params['sigma'] + alpha*(zmin-zspace)**2
+        sigma_y = self.setup_params['sigma'] + beta*(zmin+zspace)**2
         ax.plot(zspace,sigma_x,color='red')
         ax.plot(zspace,sigma_y,color='blue')
         ymin,ymax = sigma_x.min(), sigma_x.max()
@@ -58,7 +59,7 @@ class MLE3D_Test:
         theta0[4] = self.thetagt[4]
         adu = iso3d.generate(plot=True)
         adu = adu - self.cmos_params[5]
-        #self.plot_defocus()
+        self.plot_defocus()
         self.marginal_likelihood(2,adu)
         lr = np.array([0.0001,0.0001,1.0,0,0]) #hyperpar
         opt = MLEOptimizer3D(theta0,adu,self.setup_params,theta_gt=self.thetagt)

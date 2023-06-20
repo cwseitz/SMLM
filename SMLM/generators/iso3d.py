@@ -33,7 +33,7 @@ class Iso3D:
         x = np.arange(0,self.setup_params['nx']); y = np.arange(0,self.setup_params['ny'])
         X,Y = np.meshgrid(x,y)
         lam = lamx(X,x0,sigma_x)*lamy(Y,y0,sigma_y)
-        rate = self.setup_params['N0']*self.setup_params['texp']*self.setup_params['eta']*lam
+        rate = N0*self.setup_params['texp']*self.setup_params['eta']*lam  #use theta N0 (not setup_params['N0']) - need to fix this
         return rate
 
     def get_brate(self):
