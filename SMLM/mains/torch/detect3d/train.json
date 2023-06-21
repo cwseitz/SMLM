@@ -6,7 +6,8 @@
 				"type": "LocalizationCNN",
 				"args": {"nz": 10, "scaling_factor": 800, "dilation_flag": true}
 		},
-		"data_loader": {},
+		"data_loader": {
+		         "path":"/research2/shared/cwseitz/Train/"},
 		"optimizer": {
 				"type": "Adam",
 				"args":{

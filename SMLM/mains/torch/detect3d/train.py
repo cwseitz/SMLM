@@ -14,7 +14,7 @@ from SMLM.torch.utils import prepare_device
 from SMLM.torch.train import LocalizationTrainer
 
 from SMLM.generators import Mix3D
-from SMLM.torch.dataset import SMLMDataset3D
+from SMLM.torch.loaders import SMLMDataLoader3D
 from torchsummary import summary
 
 train_config = 'train.json'
@@ -23,13 +23,8 @@ train_config = json.load(file)
 train_config = ConfigParser(train_config)
 logger = train_config.get_logger('train')
 
-generator_config = 'setup.json'
-file = open(generator_config)
-generator_config = json.load(file)
-generator = Mix3D(generator_config)
-num_samples = 10
-dataset = SMLMDataset3D(generator, num_samples)
-dataloader = torch.utils.data.DataLoader(dataset, batch_size=1, shuffle=False)
+batch_size = 1
+dataloader = SMLMDataLoader3D(train_config,batch_size,validation_split=0.1,shuffle=False)
 
 model = train_config.init_obj('arch', module_arch)
 logger.info(model)

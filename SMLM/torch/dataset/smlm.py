@@ -2,15 +2,21 @@ import numpy as np
 import torch
 from skimage.io import imread
 from torch.utils.data import Dataset
+from glob import glob
 
 class SMLMDataset3D(Dataset):
-    def __init__(self,generator,num_samples):
-        self.generator = generator
-        self.num_samples = num_samples
+    def __init__(self,config):
+        path = config['data_loader']['path']
+        self.config = config
+        self.tif_files = glob(path + '*.tif')
+        self.npz_files = [f.replace('.tif','.npz') for f in self.tif_files]
     def __len__(self):
-        return self.num_samples
+        return len(self.tif_files)
     def __getitem__(self, idx):
-        data, target, theta = self.generator.generate()
-        return data, target
+        adu = imread(self.tif_files[idx])
+        x = np.load(self.npz_files[idx])
+        spikes = x['spikes']
+        theta = x['theta']
+        return adu, spikes
 
 
