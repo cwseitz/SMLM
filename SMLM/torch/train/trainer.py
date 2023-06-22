@@ -49,12 +49,6 @@ class LocalizationTrainer(BaseTrainer):
             output = self.model(data)
             nb,nc,nx,ny = target.shape
             
-            #fig,ax=plt.subplots(1,3)
-            #ax[0].imshow(np.max(target[0,:].cpu().detach().numpy(),axis=0))
-            #ax[1].imshow(np.max(output[0,:].cpu().detach().numpy(),axis=0))
-            #ax[2].imshow(data[0,0,:].cpu().detach().numpy())
-            #plt.show()
-                
             loss = self.criterion(output, target)
             loss.backward()
             self.optimizer.step()

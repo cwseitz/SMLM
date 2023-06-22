@@ -23,8 +23,9 @@ train_config = json.load(file)
 train_config = ConfigParser(train_config)
 logger = train_config.get_logger('train')
 
-batch_size = 1
+batch_size = 4
 dataloader = SMLMDataLoader3D(train_config,batch_size,validation_split=0.1,shuffle=False)
+valid_data_loader = dataloader.split_validation()
 
 model = train_config.init_obj('arch', module_arch)
 logger.info(model)
@@ -46,7 +47,7 @@ summary(model,(1,121,121))
 trainer = LocalizationTrainer(model, criterion, metrics, optimizer,
                               config=train_config,device=device,
                               data_loader=dataloader,
-                              valid_data_loader=None,
+                              valid_data_loader=valid_data_loader,
                               lr_scheduler=lr_scheduler)
                                           
 

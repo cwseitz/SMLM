@@ -4,14 +4,14 @@
 
 		"arch": {
 				"type": "LocalizationCNN",
-				"args": {"nz": 10, "scaling_factor": 800, "dilation_flag": true}
+				"args": {"nz": 121, "scaling_factor": 800, "dilation_flag": true}
 		},
 		"data_loader": {
-		         "path":"/research2/shared/cwseitz/Train/"},
+		         "path":"/home/cwseitz/Desktop/Torch/HighZRes/Train/"},
 		"optimizer": {
 				"type": "Adam",
 				"args":{
-						"lr": 0.01,
+						"lr": 0.005,
 						"weight_decay": 0,
 						"amsgrad": true
 				}
@@ -27,7 +27,7 @@
 		"trainer": {
 				"epochs": 50,
 				"save_dir": "saved/",
-				"save_period": 1,
+				"save_period": 10,
 				"verbosity": 2,
 				"monitor": "min val_loss",
 				"early_stop": 10,
