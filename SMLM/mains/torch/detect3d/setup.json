@@ -3,7 +3,7 @@
 		"texp": 1.0,
 		"nx": 121,
 		"ny": 121,
-		"nz": 121,
+		"nz": 40,
 		"eta": 0.8,
 		"gain": "cmos/gain.npz",
 		"offset": "cmos/offset.npz",

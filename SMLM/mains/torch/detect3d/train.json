@@ -4,10 +4,10 @@
 
 		"arch": {
 				"type": "LocalizationCNN",
-				"args": {"nz": 121, "scaling_factor": 800, "dilation_flag": true}
+				"args": {"nz": 40, "scaling_factor": 800, "dilation_flag": true}
 		},
 		"data_loader": {
-		         "path":"/home/cwseitz/Desktop/Torch/HighZRes/Train/"},
+		         "path":"/home/cwseitz/Desktop/Torch/MedZRes/Train/"},
 		"optimizer": {
 				"type": "Adam",
 				"args":{

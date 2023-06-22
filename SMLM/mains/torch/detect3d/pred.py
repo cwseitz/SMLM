@@ -11,10 +11,10 @@ with open('train.json', 'r') as f:
 with open('pred.json', 'r') as f:
     pred_config = json.load(f)
 
-modelpath = '/home/cwseitz/Desktop/Torch/HighZRes/Models/'
-modelname='checkpoint-epoch20.pth'
+modelpath = '/home/cwseitz/Desktop/Torch/MedZRes/Models/'
+modelname='checkpoint-epoch10.pth'
 test = CNN3D_Test(setup_config,train_config,pred_config,modelpath,modelname)
-xyz_true_batch,xyz_pred_batch = test.test(100)
+xyz_true_batch,xyz_pred_batch = test.test(100,show=True)
 z_true_batch = xyz_true_batch[:,2]
 z_pred_batch = xyz_pred_batch[:,2]
 bin_means,bin_variances  = test.get_errors(z_true_batch,z_pred_batch)

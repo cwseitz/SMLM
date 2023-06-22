@@ -85,7 +85,7 @@ class CNN3D_Test:
             xyz_pred[:,0] = xyz_pred[:,0]/4.0
             xyz_pred[:,1] = xyz_pred[:,1]/4.0
             if show:
-                show_pred(sample,xyz_pred,xyz_true)
+                self.show_pred(sample,xyz_pred,xyz_true)
             xyz_pred_matched, xyz_true_matched = self.match_on_xy(xyz_pred,xyz_true)
             xyz_true_batch.append(xyz_true_matched)
             xyz_pred_batch.append(xyz_pred_matched)
