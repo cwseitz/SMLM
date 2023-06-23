@@ -1,13 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-from ..plot import anno_blob, anno_scatter
-from ..plot import plot_end
 from matplotlib_scalebar.scalebar import ScaleBar
 from skimage.feature import blob_log
 from skimage.util import img_as_float
 
-class LOGDetector:
+class LoGDetector:
     def __init__(self,X,min_sigma=1,max_sigma=3,num_sigma=5,threshold=0.5,
                  overlap=0.5,show_scalebar=True,pixel_size=0.1083,r_to_sigraw=3,
                  plot_r=True,blob_marker='x',
@@ -56,14 +54,15 @@ class LOGDetector:
             blob = self.X[x-r:x+r+1, y-r:y+r+1]
             self.blobs_df.at[i, 'peak'] = blob.max()
 
-        print("Det in frame: %s" % (len(self.blobs_df)))
         return self.blobs_df
 
-    def show(self,ax=None):
+    def show(self,X=None,ax=None):
 
        if ax is None:
            fig, ax = plt.subplots(figsize=(6,6))
-       ax.imshow(self.X, cmap="gray", aspect='equal')
+       if X is None:
+           X = self.X
+       ax.imshow(X, cmap="gray", aspect='equal')
        ax.scatter(self.blobs_df['y'],self.blobs_df['x'],color='red',marker='x')
        if self.show_scalebar:
            font = {'family': 'arial', 'weight': 'bold','size': 16}

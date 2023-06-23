@@ -1,4 +1,3 @@
-"""
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -40,4 +39,4 @@ class GaussianPSFFitter:
         fit = self.model.gaussian(*self.theta)
         plt.contour(fit(*np.indices(X.shape)), cmap='coolwarm')
         plt.show()
-"""
+
