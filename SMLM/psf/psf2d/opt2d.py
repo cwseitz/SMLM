@@ -127,36 +127,45 @@ class SGLDSampler2D:
         self.cmos_params = cmos_params
         self.theta_gt = theta_gt
     def plot(self,thetat):
-        fig,ax = plt.subplots(1,2,figsize=(8,2))
+        fig,ax = plt.subplots(1,3,figsize=(9,2))
         iters,nparams = thetat.shape
         ax[0].plot(thetat[:,0])
         ax[0].set_xlabel('Iteration')
         ax[0].set_ylabel('x (px)')
-        ax[0].hlines(y=self.theta_gt[0],xmin=0,xmax=iters,color='red')
+        if self.theta_gt:
+            ax[0].hlines(y=self.theta_gt[0],xmin=0,xmax=iters,color='red')
         ax[1].plot(thetat[:,1])
         ax[1].set_xlabel('Iteration')
         ax[1].set_ylabel('y (px)')
-        ax[1].hlines(y=self.theta_gt[1],xmin=0,xmax=iters,color='red')
+        if self.theta_gt:
+            ax[1].hlines(y=self.theta_gt[1],xmin=0,xmax=iters,color='red')
+        ax[2].plot(thetat[:,3])
+        ax[2].set_xlabel('Iteration')
+        ax[2].set_ylabel('N0')
+        if self.theta_gt:
+            ax[2].hlines(y=self.theta_gt[2],xmin=0,xmax=iters,color='red')
         plt.tight_layout()
     def scatter_samples(self,theta):
         fig, ax = plt.subplots()
+        ax.imshow(self.adu,cmap='gray')
         ax.scatter(theta[:,0],theta[:,1],color='black')
         plt.tight_layout()
-    def sample(self,iters=1000,lr=0.001,tburn=500,plot=False):
+    def sample(self,iters=1000,lr=None,tburn=0,plot=False):
         ntheta = len(self.theta0)
         thetat = np.zeros((iters,ntheta))
         thetat[0,:] = self.theta0
+        if lr is None:
+            lr = np.array([0.001,0.001,0,1.0])
         for n in range(1,iters):
             jac = jaciso2d(thetat[n-1,:],self.adu,self.cmos_params)
             eps1 = np.random.normal(0,1)
             eps2 = np.random.normal(0,1)
-            thetat[n,0] = thetat[n-1,0] - lr*jac[0] + np.sqrt(lr)*eps1
-            thetat[n,1] = thetat[n-1,1] - lr*jac[1] + np.sqrt(lr)*eps2
+            eps4 = np.random.normal(0,1)
+            thetat[n,0] = thetat[n-1,0] - lr[0]*jac[0] + np.sqrt(lr[0])*eps1
+            thetat[n,1] = thetat[n-1,1] - lr[1]*jac[1] + np.sqrt(lr[1])*eps2
             thetat[n,2] = thetat[n-1,2]
-            thetat[n,3] = thetat[n-1,3]
+            thetat[n,3] = thetat[n-1,3] - lr[3]*jac[3] + np.sqrt(lr[3])*eps4
         thetat = thetat[tburn:,:]
         if plot:
-            self.scatter_samples(thetat)
             self.plot(thetat)
-            plt.show()
         return thetat

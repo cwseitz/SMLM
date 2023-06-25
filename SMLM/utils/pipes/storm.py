@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 from SMLM.utils.localize import LoGDetector
 from SMLM.utils import RLDeconvolver
-from SMLM.psf.psf2d import MLEOptimizer2DGrad
+from SMLM.psf.psf2d import MLEOptimizer2DGrad, SGLDSampler2D
 from skimage.filters import gaussian
 
 class PipelineMLE2D:
@@ -39,6 +39,14 @@ class PipelineMLE2D:
         else:
             print('Spot files exist. Skipping')
         return spots
+    def scatter_samples(self,adu,samples,theta_opt=None):
+        fig, ax = plt.subplots()
+        ax.imshow(adu,cmap='gray')
+        ax.scatter(samples[:,0],samples[:,1],color='black')
+        if theta_opt is not None:
+            ax.scatter(theta_opt[1],theta_opt[0],color='blue',label='MLE')
+        ax.legend()
+        plt.tight_layout()
     def fit(self,frame,spots,plot=False,patchw=2):
         lr = np.array([0.0001,0.0001,0.0,10.0])
         for i in spots.index:
@@ -50,7 +58,11 @@ class PipelineMLE2D:
             adu = np.clip(adu,0,None)
             theta0 = np.array([patchw,patchw,self.setup['sigma'],self.setup['N0']])
             opt = MLEOptimizer2DGrad(theta0,adu,self.setup)
-            theta, loglike = opt.optimize(iters=100,plot=True,lr=lr)
+            theta_opt, loglike = opt.optimize(iters=1000,plot=False,lr=lr)
+            sampler = SGLDSampler2D(theta0,adu,self.cmos_params)
+            samples = sampler.sample(iters=1000,plot=True,lr=lr)
+            self.scatter_samples(adu,samples,theta_opt=theta_opt)
+            plt.show()
 
 class PipelineCNN2D:
     def __init__(self):
