@@ -9,12 +9,13 @@ from SMLM.psf.psf2d import MLEOptimizer2DGrad
 from skimage.filters import gaussian
 
 class PipelineMLE2D:
-    def __init__(self,config,prefix):
+    def __init__(self,config,setup,prefix):
         self.config = config
         self.prefix = prefix
+        self.setup = setup
         self.analpath = config['analpath']
         self.datapath = config['datapath']
-        self.stack = tifffile.imread(self.datapath+self.prefix+'.tif')
+        self.stack = tifffile.imread(self.datapath+self.prefix+'.tif')[:10]
         Path(self.analpath+self.prefix).mkdir(parents=True, exist_ok=True)
     def localize(self,plot=False):
         path = self.analpath+self.prefix+'/'+self.prefix+'_spots.csv'
@@ -28,13 +29,23 @@ class PipelineMLE2D:
                 framed = deconv.deconvolve(self.stack[n])
                 log = LoGDetector(framed,threshold=threshold)
                 spots = log.detect()
-                log.show(self.stack[n])
-                plt.show()
+                self.fit(self.stack[n],spots)
         else:
             print('Spot files exist. Skipping')
-    def fit(self,plot=False):
-        opt = MLEOptimizer2DGrad()
-        
+        return spots
+    def fit(self,frame,spots,plot=False,patchw=4):
+        for i in spots.index:
+            x0 = int(spots.at[i,'x'])
+            y0 = int(spots.at[i,'y'])
+            adu = frame[x0-patchw:x0+patchw+1,y0-patchw:y0+patchw+1]
+            theta0 = np.array([patchw,patchw,self.setup['sigma'],self.setup['N0']])
+            opt = MLEOptimizer2DGrad(theta0,adu,self.setup)
+            opt.optimize()
+
+class PipelineCNN2D:
+    def __init__(self):
+        pass
+
 class PipelineLifetime:
     def __init__(self,config,prefix,dt=10,plot=True):
         self.config = config

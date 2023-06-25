@@ -48,6 +48,7 @@ class MLEOptimizer2DGrad:
         for n in range(iters):
             loglike[n] = isologlike2d(theta,self.adu,self.cmos_params)
             jac = jaciso2d(theta,self.adu,self.cmos_params)
+            jac = jaciso_auto2d(theta,self.adu,self.cmos_params)
             theta[0] -= lr[0]*jac[0]
             theta[1] -= lr[1]*jac[1]
             theta[2] -= lr[2]*jac[2]

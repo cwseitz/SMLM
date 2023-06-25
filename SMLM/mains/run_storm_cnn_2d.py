@@ -15,6 +15,6 @@ with open('setup2d.json', 'r') as f:
     
 for prefix in prefixes:
     print("Processing " + prefix)
-    pipe = PipelineMLE2D(config,setup,prefix)
-    spots = pipe.localize()
+    pipe = PipelineCNN2D()
+
 

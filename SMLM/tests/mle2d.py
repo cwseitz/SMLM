@@ -12,6 +12,22 @@ class MLE2DGrad_Test:
                             np.load(setup_params['gain'])['arr_0'],
                             np.load(setup_params['offset'])['arr_0'],
                             np.load(setup_params['var'])['arr_0']]  
+
+    def marginal_likelihood(self,idx,adu,nsamples=100):
+        paramgt = self.thetagt[idx]
+        bounds = [3,3,0.5,5000]
+        pbound = bounds[idx]
+        param_space = np.linspace(paramgt-1000,paramgt+pbound,nsamples)
+        loglike = np.zeros_like(param_space)
+        theta_ = np.zeros_like(self.thetagt)
+        theta_ = theta_ + self.thetagt
+        for n in range(nsamples):
+           theta_[idx] = param_space[n]
+           loglike[n] = isologlike2d(theta_,adu,self.cmos_params)
+        fig,ax=plt.subplots()
+        ax.plot(param_space,loglike,color='red')
+        ax.vlines(paramgt,ymin=loglike.min(),ymax=loglike.max(),color='black')
+
     def test(self):
         self.thetagt = np.array([self.setup_params['x0'],
                                  self.setup_params['y0'],
@@ -19,13 +35,17 @@ class MLE2DGrad_Test:
                                  self.setup_params['N0']])
         iso2d = Iso2D(self.thetagt,self.setup_params)
         adu = iso2d.generate(plot=True)
-        lr = np.array([0.001,0.001,0.0,0.0]) #hyperpar
+        adu = adu - self.cmos_params[5]
+        adu = np.clip(adu,0,None)
+        lr = np.array([0.001,0.001,0.0,10.0]) #hyperpar
         theta0 = np.zeros_like(self.thetagt)
         theta0 += self.thetagt
         theta0[0] += np.random.normal(0,2)
         theta0[1] += np.random.normal(0,2)
+        theta0[3] += 100
+        self.marginal_likelihood(3,adu)
         opt = MLEOptimizer2DGrad(theta0,adu,self.setup_params,theta_gt=self.thetagt)
-        theta, loglike = opt.optimize(iters=100,lr=lr,plot=True)
+        theta, loglike = opt.optimize(iters=1000,lr=lr,plot=True)
         
 
 class MLE2DNewton_Test:
