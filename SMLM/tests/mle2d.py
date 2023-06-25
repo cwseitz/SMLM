@@ -37,15 +37,15 @@ class MLE2DGrad_Test:
         adu = iso2d.generate(plot=True)
         adu = adu - self.cmos_params[5]
         adu = np.clip(adu,0,None)
-        lr = np.array([0.001,0.001,0.0,10.0]) #hyperpar
+        lr = np.array([0.001,0.001,0.0,100.0]) #hyperpar
         theta0 = np.zeros_like(self.thetagt)
         theta0 += self.thetagt
-        theta0[0] += np.random.normal(0,2)
-        theta0[1] += np.random.normal(0,2)
+        theta0[0] += np.random.normal(0,1)
+        theta0[1] += np.random.normal(0,1)
         theta0[3] += 100
         self.marginal_likelihood(3,adu)
         opt = MLEOptimizer2DGrad(theta0,adu,self.setup_params,theta_gt=self.thetagt)
-        theta, loglike = opt.optimize(iters=1000,lr=lr,plot=True)
+        theta, loglike = opt.optimize(iters=100,lr=lr,plot=True)
         
 
 class MLE2DNewton_Test:

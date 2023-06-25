@@ -1,8 +1,9 @@
 import numpy as np
 
-gain = 2.2*np.ones((20,20))
-offset = 100*np.ones((20,20))
-var = 5*np.ones((20,20))
+nx,ny = 5,5
+gain = 2.2*np.ones((nx,ny))
+offset = 100*np.ones((nx,ny))
+var = 5*np.ones((nx,ny))
 
 np.savez('gain.npz',gain)
 np.savez('offset.npz',offset)

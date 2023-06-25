@@ -17,6 +17,11 @@ class PipelineMLE2D:
         self.datapath = config['datapath']
         self.stack = tifffile.imread(self.datapath+self.prefix+'.tif')[:10]
         Path(self.analpath+self.prefix).mkdir(parents=True, exist_ok=True)
+        self.cmos_params = [setup['nx'],setup['ny'],
+                            setup['eta'],setup['texp'],
+                            np.load(setup['gain'])['arr_0'],
+                            np.load(setup['offset'])['arr_0'],
+                            np.load(setup['var'])['arr_0']]  
     def localize(self,plot=False):
         path = self.analpath+self.prefix+'/'+self.prefix+'_spots.csv'
         file = Path(path)
@@ -29,18 +34,23 @@ class PipelineMLE2D:
                 framed = deconv.deconvolve(self.stack[n])
                 log = LoGDetector(framed,threshold=threshold)
                 spots = log.detect()
-                self.fit(self.stack[n],spots)
+                log.show()
+                self.fit(framed,spots)
         else:
             print('Spot files exist. Skipping')
         return spots
-    def fit(self,frame,spots,plot=False,patchw=4):
+    def fit(self,frame,spots,plot=False,patchw=2):
+        lr = np.array([0.0001,0.0001,0.0,10.0])
         for i in spots.index:
+            print(f'Fitting spot {i}')
             x0 = int(spots.at[i,'x'])
             y0 = int(spots.at[i,'y'])
             adu = frame[x0-patchw:x0+patchw+1,y0-patchw:y0+patchw+1]
+            adu = adu - self.cmos_params[5]
+            adu = np.clip(adu,0,None)
             theta0 = np.array([patchw,patchw,self.setup['sigma'],self.setup['N0']])
             opt = MLEOptimizer2DGrad(theta0,adu,self.setup)
-            opt.optimize()
+            theta, loglike = opt.optimize(iters=100,plot=True,lr=lr)
 
 class PipelineCNN2D:
     def __init__(self):

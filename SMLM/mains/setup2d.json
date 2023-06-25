@@ -1,7 +1,7 @@
 {
 		"texp": 1.0,
-		"nx": 20,
-		"ny": 20,
+		"nx": 5,
+		"ny": 5,
 		"eta": 0.8,
 		"gain": "cmos/gain.npz",
 		"offset": "cmos/offset.npz",
@@ -10,6 +10,6 @@
 		"N0": 1000,
 		"B0": 0,
 		"pixel_size_lateral": 108.3,
-		"x0": 10,
-		"y0": 10
+		"x0": 3,
+		"y0": 3
 }

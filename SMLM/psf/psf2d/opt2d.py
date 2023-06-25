@@ -17,22 +17,33 @@ class MLEOptimizer2DGrad:
                             np.load(setup_params['gain'])['arr_0'],
                             np.load(setup_params['offset'])['arr_0'],
                             np.load(setup_params['var'])['arr_0']]
+    def show(self,theta0,theta):
+        fig,ax = plt.subplots(figsize=(4,4))
+        ax.imshow(self.adu,cmap='gray')
+        ax.scatter(theta0[1],theta0[0],color='red')
+        ax.scatter(theta[1],theta[0],color='blue')
+        plt.tight_layout()
+        plt.show()
     def plot(self,thetat,iters):
         fig,ax = plt.subplots(1,4,figsize=(10,2))
         ax[0].plot(thetat[:,0])
-        ax[0].hlines(y=self.theta_gt[0],xmin=0,xmax=iters,color='red')
+        if self.theta_gt:
+            ax[0].hlines(y=self.theta_gt[0],xmin=0,xmax=iters,color='red')
         ax[0].set_xlabel('Iteration')
         ax[0].set_ylabel('x')
         ax[1].plot(thetat[:,1])
-        ax[1].hlines(y=self.theta_gt[1],xmin=0,xmax=iters,color='red')
+        if self.theta_gt:
+            ax[1].hlines(y=self.theta_gt[1],xmin=0,xmax=iters,color='red')
         ax[1].set_xlabel('Iteration')
         ax[1].set_ylabel('y')
         ax[2].plot(thetat[:,2])
-        ax[2].hlines(y=self.theta_gt[2],xmin=0,xmax=iters,color='red')
+        if self.theta_gt:
+            ax[2].hlines(y=self.theta_gt[2],xmin=0,xmax=iters,color='red')
         ax[2].set_xlabel('Iteration')
         ax[2].set_ylabel(r'$\sigma$')
         ax[3].plot(thetat[:,3])
-        ax[3].hlines(y=self.theta_gt[3],xmin=0,xmax=iters,color='red')
+        if self.theta_gt:
+            ax[3].hlines(y=self.theta_gt[3],xmin=0,xmax=iters,color='red')
         ax[3].set_xlabel('Iteration')
         ax[3].set_ylabel(r'$N_{0}$')
         plt.tight_layout()
@@ -48,7 +59,6 @@ class MLEOptimizer2DGrad:
         for n in range(iters):
             loglike[n] = isologlike2d(theta,self.adu,self.cmos_params)
             jac = jaciso2d(theta,self.adu,self.cmos_params)
-            jac = jaciso_auto2d(theta,self.adu,self.cmos_params)
             theta[0] -= lr[0]*jac[0]
             theta[1] -= lr[1]*jac[1]
             theta[2] -= lr[2]*jac[2]
@@ -57,6 +67,7 @@ class MLEOptimizer2DGrad:
                 thetat[n,:] = theta
         if plot:
             self.plot(thetat,iters)
+            self.show(self.theta0,theta)
         return theta, loglike
  
 class MLEOptimizer2DNewton:
