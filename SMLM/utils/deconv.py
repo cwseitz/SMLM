@@ -17,11 +17,11 @@ class RLDeconvolver:
         lambdy = 0.5*(erf((Y+0.5-y0)/alpha)-erf((Y-0.5-y0)/alpha))
         lam = lambdx*lambdy
         return lam
-    def deconvolve(self,frame,num_iter=5,plot=False):
+    def deconvolve(self,frame,iters=5,plot=False):
         sigma,nx,ny = 0.92,7,7
         psf = self.psf(sigma,nx,ny)
         fframe = img_as_float(frame)
-        deconv = restoration.richardson_lucy(fframe,psf,num_iter=num_iter)
+        deconv = restoration.richardson_lucy(fframe,psf,num_iter=iters)
         deconv = img_as_uint(deconv)
         if plot:
             fig,ax=plt.subplots(1,2,sharex=True,sharey=True)

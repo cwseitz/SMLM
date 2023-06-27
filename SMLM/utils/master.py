@@ -3,37 +3,31 @@ import matplotlib.pyplot as plt
 from scipy.linalg import expm
 from SSA._SSA import photoswitch
 from .ssa import bin_ssa, lifetime4s, bin_lifetime
+from scipy.integrate import odeint
+from scipy.linalg import null_space
+
 
 class MasterSolver:
     def __init__(self,rates):
         self.num_states = 4
         self.rates = rates #k12,k23,k34,k21,k31,k41
-        self.get_generator()
-    def get_generator(self):
+    def solve(self):
+        transition_matrix = np.zeros((self.num_states,self.num_states))
         generator_matrix = np.zeros((self.num_states,self.num_states))
-        generator_matrix[0,1] = self.rates[0]  # Transition from state 1 to state 2
-        generator_matrix[1,2] = self.rates[1]  # Transition from state 2 to state 3
-        generator_matrix[2,3] = self.rates[2]  # Transition from state 3 to state 4
-        generator_matrix[1,0] = self.rates[3]  # Transition from state 2 to state 1
-        generator_matrix[2,0] = self.rates[4]  # Transition from state 3 to state 1
-        generator_matrix[3,0] = self.rates[5]  # Transition from state 4 to state 1
+        transition_matrix[0,1] = self.rates[0]
+        transition_matrix[1,2] = self.rates[1]
+        transition_matrix[2,3] = self.rates[2]
+        transition_matrix[1,0] = self.rates[3]
+        transition_matrix[2,0] = self.rates[4]
+        transition_matrix[3,0] = self.rates[5]
+        generator_matrix += transition_matrix
         for i in range(self.num_states):
             generator_matrix[i,i] = -np.sum(generator_matrix[i])
         self.generator = generator_matrix
-    def solve(self,time,P0):
-        P = np.zeros((self.num_states,len(time)))
-        for n,t in enumerate(time):
-            P[:,n] = expm(self.generator*t) @ P0
-            P[:,n] = P[:,n]/np.sum(P[:,n])
-        return P
-    def plot(self,P,t):
-        fig,ax=plt.subplots()
-        ax.plot(t,P[0,:],color='pink',label='1')
-        ax.plot(t,P[1,:],color='cornflowerblue',label='2')
-        ax.plot(t,P[2,:],color='purple',label='3')
-        ax.plot(t,P[3,:],color='cyan',label='4')
-        ax.plot(t,np.sum(P,axis=0),color='black')
-        ax.legend()
+        stationary_matrix = null_space(self.generator.T)
+        stationary_vector = stationary_matrix[:, 0]
+        stationary_vector /= np.sum(stationary_vector)
+        return stationary_vector
     
 class SSASolver:
     def __init__(self,rates,nreps=1000):
@@ -66,5 +60,4 @@ class SSASolver:
         ax.plot(t,P[1,:],color='cornflowerblue',linestyle='--',label='2')
         ax.plot(t,P[2,:],color='purple',linestyle='--',label='3')
         ax.plot(t,P[3,:],color='cyan',linestyle='--',label='4')
-        ax.plot(t,np.sum(P,axis=0),color='black')
         ax.legend()

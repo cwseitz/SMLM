@@ -27,7 +27,10 @@ class MLE2DGrad_Test:
         fig,ax=plt.subplots()
         ax.plot(param_space,loglike,color='red')
         ax.vlines(paramgt,ymin=loglike.min(),ymax=loglike.max(),color='black')
-
+    def get_errors(self,theta,adu):
+        hess = hessiso_auto2d(theta,adu,self.cmos_params)
+        errors = np.sqrt(np.diag(inv(hess)))
+        return errors
     def test(self):
         self.thetagt = np.array([self.setup_params['x0'],
                                  self.setup_params['y0'],
@@ -45,7 +48,9 @@ class MLE2DGrad_Test:
         theta0[3] += 100
         self.marginal_likelihood(3,adu)
         opt = MLEOptimizer2DGrad(theta0,adu,self.setup_params,theta_gt=self.thetagt)
-        theta, loglike = opt.optimize(iters=100,lr=lr,plot=True)
+        theta, loglike = opt.optimize(iters=100,lr=lr,plot=True,grid_search=True)
+        error_mle = self.get_errors(theta,adu)
+        print(error_mle)
         
 
 class MLE2DNewton_Test:

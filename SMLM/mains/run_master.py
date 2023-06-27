@@ -10,7 +10,6 @@ k21 = 0.15
 k31 = 0.04
 k41 = 0.05
 
-
 rates = np.array([k12,k23,k34,k21,k31,k41])
 T = 100.0
 dt = 0.001
@@ -20,15 +19,13 @@ dt = 0.001
 ###############
 
 solver = MasterSolver(rates)
-time = np.arange(0,T,dt)
-P0 = np.array([1,0,0,0])
-P = solver.solve(time,P0)
-solver.plot(P,time)
+Pf = solver.solve()
 
 ###############
 # SSA Solution
 ###############
 
+time = np.arange(0,T,dt)
 solver = SSASolver(rates)
 P = solver.solve(T,dt)
 solver.plot(P,time)

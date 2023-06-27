@@ -5,9 +5,8 @@ import numpy as np
 import json
 
 prefixes = [
-'230516_Hela_j646_50pm overnight_High_10ms_10000frames_buffer_03-sub'
+'230516_Hela_j646_50pm overnight_High_10ms_10000frames_buffer_02-sub'
 ]
-
 with open('storm2d.json', 'r') as f:
     config = json.load(f)
 with open('setup2d.json', 'r') as f:
@@ -16,5 +15,5 @@ with open('setup2d.json', 'r') as f:
 for prefix in prefixes:
     print("Processing " + prefix)
     pipe = PipelineMLE2D(config,setup,prefix)
-    spots = pipe.localize()
+    pipe.localize()
 

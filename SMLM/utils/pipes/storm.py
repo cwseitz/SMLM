@@ -5,8 +5,9 @@ import matplotlib.pyplot as plt
 from pathlib import Path
 from SMLM.utils.localize import LoGDetector
 from SMLM.utils import RLDeconvolver
-from SMLM.psf.psf2d import MLEOptimizer2DGrad, SGLDSampler2D
+from SMLM.psf.psf2d import MLEOptimizer2DGrad, SGLDSampler2D, LSQOptimizer2D, hessiso_auto2d
 from skimage.filters import gaussian
+from numpy.linalg import inv
 
 class PipelineMLE2D:
     def __init__(self,config,setup,prefix):
@@ -15,7 +16,7 @@ class PipelineMLE2D:
         self.setup = setup
         self.analpath = config['analpath']
         self.datapath = config['datapath']
-        self.stack = tifffile.imread(self.datapath+self.prefix+'.tif')[:10]
+        self.stack = tifffile.imread(self.datapath+self.prefix+'.tif')[:1000]
         Path(self.analpath+self.prefix).mkdir(parents=True, exist_ok=True)
         self.cmos_params = [setup['nx'],setup['ny'],
                             setup['eta'],setup['texp'],
@@ -28,27 +29,43 @@ class PipelineMLE2D:
         nt,nx,ny = self.stack.shape
         deconv = RLDeconvolver()
         threshold = self.config['threshold']
+        spotst = []
         if not file.exists():
             for n in range(nt):
                 print(f'Det in frame {n}')
-                framed = deconv.deconvolve(self.stack[n])
+                framed = deconv.deconvolve(self.stack[n],iters=5)
                 log = LoGDetector(framed,threshold=threshold)
                 spots = log.detect()
-                log.show()
-                self.fit(framed,spots)
+                spots = self.fit(framed,spots)
+                #log.show(); plt.show()
+                spots = spots.assign(frame=n)
+                spotst.append(spots)
+            spotst = pd.concat(spotst)
+            self.save(spotst)
         else:
             print('Spot files exist. Skipping')
-        return spots
-    def scatter_samples(self,adu,samples,theta_opt=None):
+
+    def scatter_samples(self,adu,samples,theta_mle=None,theta_sgld=None):
         fig, ax = plt.subplots()
         ax.imshow(adu,cmap='gray')
-        ax.scatter(samples[:,0],samples[:,1],color='black')
-        if theta_opt is not None:
-            ax.scatter(theta_opt[1],theta_opt[0],color='blue',label='MLE')
+        std = np.round(np.std(samples,axis=0),3)
+        labelstr = f'sx={std[0]}, sy={std[1]}'
+        ax.scatter(samples[:,0],samples[:,1],color='black',label=labelstr)
+        if theta_mle is not None:
+            ax.scatter(theta_mle[0],theta_mle[1],color='red',label='MLE')
+        if theta_sgld is not None:
+            ax.scatter(theta_sgld[0],theta_sgld[1],color='blue',label='SGLD')
         ax.legend()
         plt.tight_layout()
-    def fit(self,frame,spots,plot=False,patchw=2):
-        lr = np.array([0.0001,0.0001,0.0,10.0])
+        
+    def get_errors(self,theta,adu):
+        hess = hessiso_auto2d(theta,adu,self.cmos_params)
+        errors = np.sqrt(np.diag(inv(hess)))
+        return errors
+        
+    def fit(self,frame,spots,plot=False,patchw=3):
+        lr = np.array([0.0001,0.0001,0.0,350.0])
+        spots['x_mle'] = None; spots['y_mle'] = None; spots['N0'] = None;
         for i in spots.index:
             print(f'Fitting spot {i}')
             x0 = int(spots.at[i,'x'])
@@ -58,11 +75,16 @@ class PipelineMLE2D:
             adu = np.clip(adu,0,None)
             theta0 = np.array([patchw,patchw,self.setup['sigma'],self.setup['N0']])
             opt = MLEOptimizer2DGrad(theta0,adu,self.setup)
-            theta_opt, loglike = opt.optimize(iters=1000,plot=False,lr=lr)
-            sampler = SGLDSampler2D(theta0,adu,self.cmos_params)
-            samples = sampler.sample(iters=1000,plot=True,lr=lr)
-            self.scatter_samples(adu,samples,theta_opt=theta_opt)
-            plt.show()
+            theta_mle, loglike = opt.optimize(iters=20,plot=False,lr=lr)
+            error_mle = self.get_errors(theta_mle,adu)
+            print(error_mle)
+            spots.at[i, 'x_mle'] = x0 + theta_mle[0] - patchw
+            spots.at[i, 'y_mle'] = y0 + theta_mle[1] - patchw
+            spots.at[i, 'N0'] = theta_mle[3]
+        return spots
+    def save(self,spotst):
+        path = self.analpath+self.prefix+'/'+self.prefix+'_spots.csv'
+        spotst.to_csv(path)
 
 class PipelineCNN2D:
     def __init__(self):
@@ -85,7 +107,7 @@ class PipelineLifetime:
         vals = self.stack[:,xidx,yidx]
         nt,nspots = vals.shape
         thresh = np.mean(vals,axis=0)
-        thresh_vals = vals > thresh.reshape(1, -1) 
+        thresh_vals = vals > thresh.reshape(1,-1) 
         binary = thresh_vals.astype(int)
         all_off_times = []; all_on_times = []
         for n in range(nspots):
@@ -118,4 +140,50 @@ class PipelineLifetime:
         off_times += list(np.squeeze(diff2)*dt)
         on_times += list(np.squeeze(diff1)*dt)
         return off_times, on_times
+        
+        
+class PipelineLSQ2D:
+    def __init__(self,config,setup,prefix):
+        self.config = config
+        self.prefix = prefix
+        self.setup = setup
+        self.analpath = config['analpath']
+        self.datapath = config['datapath']
+        self.stack = tifffile.imread(self.datapath+self.prefix+'.tif')
+        Path(self.analpath+self.prefix).mkdir(parents=True, exist_ok=True)
+        self.cmos_params = [setup['nx'],setup['ny'],
+                            setup['eta'],setup['texp'],
+                            np.load(setup['gain'])['arr_0'],
+                            np.load(setup['offset'])['arr_0'],
+                            np.load(setup['var'])['arr_0']]  
+    def localize(self,plot=False):
+        path = self.analpath+self.prefix+'/'+self.prefix+'_spots.csv'
+        file = Path(path)
+        nt,nx,ny = self.stack.shape
+        deconv = RLDeconvolver()
+        threshold = self.config['threshold']
+        spotst = []
+        if not file.exists():
+            for n in range(nt):
+                print(f'Det in frame {n}')
+                framed = deconv.deconvolve(self.stack[n],iters=5)
+                log = LoGDetector(framed,threshold=threshold)
+                spots = log.detect()
+                log.show(); plt.show()
+                spots = spots.assign(frame=n)
+                spots = self.fit(framed,spots)
+                spotst.append(spots)
+            spotst = pd.concat(spotst)
+            self.save(spotst)
+            
+        else:
+            print('Spot files exist. Skipping')
+
+    def fit(self,adu,spots,plot=False):
+        opt = LSQOptimizer2D(adu,self.setup)
+        theta_opt = opt.optimize(spots,plot=True)
+    def save(self,spotst):
+        path = self.analpath+self.prefix+'/'+self.prefix+'_spots.csv'
+        spotst.to_csv(path)
+
 

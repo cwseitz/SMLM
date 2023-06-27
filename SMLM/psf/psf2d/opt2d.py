@@ -5,6 +5,7 @@ from .psf2d import *
 from .ill2d import *
 from .jac2d import *
 from .hess2d import *
+from .lsq2d import *
 
 class MLEOptimizer2DGrad:
     def __init__(self,theta0,adu,setup_params,theta_gt=None):
@@ -20,37 +21,50 @@ class MLEOptimizer2DGrad:
     def show(self,theta0,theta):
         fig,ax = plt.subplots(figsize=(4,4))
         ax.imshow(self.adu,cmap='gray')
-        ax.scatter(theta0[1],theta0[0],color='red')
-        ax.scatter(theta[1],theta[0],color='blue')
+        ax.scatter(theta0[0],theta0[1],color='red',label='raw')
+        ax.scatter(theta[0],theta[1],color='blue',label='fit')
+        ax.legend()
         plt.tight_layout()
-        plt.show()
+        
     def plot(self,thetat,iters):
         fig,ax = plt.subplots(1,4,figsize=(10,2))
         ax[0].plot(thetat[:,0])
-        if self.theta_gt:
+        if self.theta_gt is not None:
             ax[0].hlines(y=self.theta_gt[0],xmin=0,xmax=iters,color='red')
         ax[0].set_xlabel('Iteration')
         ax[0].set_ylabel('x')
         ax[1].plot(thetat[:,1])
-        if self.theta_gt:
+        if self.theta_gt is not None:
             ax[1].hlines(y=self.theta_gt[1],xmin=0,xmax=iters,color='red')
         ax[1].set_xlabel('Iteration')
         ax[1].set_ylabel('y')
         ax[2].plot(thetat[:,2])
-        if self.theta_gt:
+        if self.theta_gt is not None:
             ax[2].hlines(y=self.theta_gt[2],xmin=0,xmax=iters,color='red')
         ax[2].set_xlabel('Iteration')
         ax[2].set_ylabel(r'$\sigma$')
         ax[3].plot(thetat[:,3])
-        if self.theta_gt:
+        if self.theta_gt is not None:
             ax[3].hlines(y=self.theta_gt[3],xmin=0,xmax=iters,color='red')
         ax[3].set_xlabel('Iteration')
         ax[3].set_ylabel(r'$N_{0}$')
         plt.tight_layout()
-        plt.show()
-    def optimize(self,iters=1000,lr=None,plot=False):
-        if plot:
-            thetat = np.zeros((iters,4))
+        
+    def grid_search(self,ax,theta,nn=200,delta=3):
+        x0,y0,sigma,N0 = theta
+        surf = np.zeros((nn,nn))
+        x0space = np.linspace(x0-delta,x0+delta,nn)
+        y0space = np.linspace(y0-delta,y0+delta,nn)
+        X0,Y0 = np.meshgrid(x0space,y0space)
+        for i in range(nn):
+            for j in range(nn):
+                theta_ = np.array([X0[i,j],Y0[i,j],sigma,N0])
+                surf[i,j] = isologlike2d(theta_,self.adu,self.cmos_params)
+        #ax.contour(X0,Y0,surf,cmap='jet')
+        ax.imshow(surf,cmap='jet')
+        
+    def optimize(self,iters=1000,lr=None,plot=False,grid_search=False):
+        thetat = np.zeros((iters,4))
         if lr is None:
             lr = np.array([0.001,0.001,0,0])
         loglike = np.zeros((iters,))
@@ -65,9 +79,14 @@ class MLEOptimizer2DGrad:
             theta[3] -= lr[3]*jac[3]
             if plot:
                 thetat[n,:] = theta
+        if grid_search:
+            fig,ax = plt.subplots()
+            self.grid_search(ax,theta)
+            plt.show()
         if plot:
             self.plot(thetat,iters)
             self.show(self.theta0,theta)
+            plt.show()
         return theta, loglike
  
 class MLEOptimizer2DNewton:
@@ -145,10 +164,23 @@ class SGLDSampler2D:
         if self.theta_gt:
             ax[2].hlines(y=self.theta_gt[2],xmin=0,xmax=iters,color='red')
         plt.tight_layout()
-    def scatter_samples(self,theta):
+    def grid_search(self,ax,nn=200,delta=3):
+        x0,y0,sigma,N0 = self.theta0
+        surf = np.zeros((nn,nn))
+        x0space = np.linspace(x0-delta,x0+delta,nn)
+        y0space = np.linspace(y0-delta,y0+delta,nn)
+        X0,Y0 = np.meshgrid(x0space,y0space)
+        for i in range(nn):
+            for j in range(nn):
+                theta_ = np.array([X0[i,j],Y0[i,j],sigma,N0])
+                surf[i,j] = isologlike2d(theta_,self.adu,self.cmos_params)
+        ax.contour(X0,Y0,surf,cmap='jet')
+    def scatter_samples(self,theta,grid_search=False):
         fig, ax = plt.subplots()
         ax.imshow(self.adu,cmap='gray')
         ax.scatter(theta[:,0],theta[:,1],color='black')
+        if grid_search:
+            self.grid_search(ax)
         plt.tight_layout()
     def sample(self,iters=1000,lr=None,tburn=0,plot=False):
         ntheta = len(self.theta0)
@@ -168,4 +200,14 @@ class SGLDSampler2D:
         thetat = thetat[tburn:,:]
         if plot:
             self.plot(thetat)
+            self.scatter_samples(thetat,grid_search=True)
         return thetat
+        
+class LSQOptimizer2D:
+    def __init__(self,adu,setup_params,theta_gt=None):
+       self.theta_gt = theta_gt
+       self.adu = adu
+       self.setup_params = setup_params
+    def optimize(self,spots,plot=False):
+        spots, plt_array = fit_psf(self.adu,spots,pltshow=plot,delta=3)
+        return spots

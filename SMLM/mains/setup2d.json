@@ -1,7 +1,7 @@
 {
 		"texp": 1.0,
-		"nx": 5,
-		"ny": 5,
+		"nx": 7,
+		"ny": 7,
 		"eta": 0.8,
 		"gain": "cmos/gain.npz",
 		"offset": "cmos/offset.npz",
