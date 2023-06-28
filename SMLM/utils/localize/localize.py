@@ -37,8 +37,8 @@ class LoGDetector:
 
         columns = ['x', 'y', 'sigma', 'r', 'peak']
         self.blobs_df = pd.DataFrame([], columns=columns)
-        self.blobs_df['x'] = blobs[:, 0]
-        self.blobs_df['y'] = blobs[:, 1]
+        self.blobs_df['x'] = blobs[:,0]
+        self.blobs_df['y'] = blobs[:,1]
         self.blobs_df['sigma'] = blobs[:, 2]
         self.blobs_df['r'] = blobs[:, 2] * self.r_to_sigraw
 

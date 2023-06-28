@@ -35,9 +35,9 @@ class PipelineMLE2D:
                 print(f'Det in frame {n}')
                 framed = deconv.deconvolve(self.stack[n],iters=5)
                 log = LoGDetector(framed,threshold=threshold)
-                spots = log.detect()
+                spots = log.detect() #image coordinates
+                log.show(); plt.show()
                 spots = self.fit(framed,spots)
-                #log.show(); plt.show()
                 spots = spots.assign(frame=n)
                 spotst.append(spots)
             spotst = pd.concat(spotst)
@@ -79,14 +79,15 @@ class PipelineMLE2D:
             adu = adu - self.cmos_params[5]
             adu = np.clip(adu,0,None)
             theta0 = np.array([patchw,patchw,self.setup['sigma'],self.setup['N0']])
-            opt = MLEOptimizer2DGrad(theta0,adu,self.setup)
+            opt = MLEOptimizer2DGrad(theta0,adu,self.setup) #cartesian coordinates with top-left origin
             theta_mle, loglike = opt.optimize(iters=20,plot=False,lr=lr)
             error_mle = self.get_errors(theta_mle,adu)
-            spots.at[i, 'x_mle'] = x0 + theta_mle[0] - patchw
-            spots.at[i, 'y_mle'] = y0 + theta_mle[1] - patchw
+            dx = theta_mle[1] - patchw; dy = theta_mle[0] - patchw
+            spots.at[i, 'x_mle'] = x0 + dx
+            spots.at[i, 'y_mle'] = y0 + dy
             spots.at[i, 'N0'] = theta_mle[3]
-            spots.at[i, 'x_err'] = error_mle[0]
-            spots.at[i, 'y_err'] = error_mle[1]
+            spots.at[i, 'x_err'] = error_mle[1]
+            spots.at[i, 'y_err'] = error_mle[0]
             spots.at[i, 's_err'] = error_mle[2]
             spots.at[i, 'N0_err'] = error_mle[3]
         return spots
