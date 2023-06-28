@@ -49,13 +49,9 @@ class SSASolver:
         return state  
     def solve(self,T,dt):
         X = self.ssa(T,dt)
-        times1, times2 = lifetime4s(X,dt)
-        bins = np.arange(0,100,1)
-        vals0, vals1 = bin_lifetime(times1,times2,bins,density=True)
         Xavg = np.mean(X,axis=0)
-        return Xavg
-    def plot(self,P,t):
-        fig,ax=plt.subplots()
+        return X, Xavg
+    def plot(self,ax,P,t):
         ax.plot(t,P[0,:],color='pink',linestyle='--',label='1')
         ax.plot(t,P[1,:],color='cornflowerblue',linestyle='--',label='2')
         ax.plot(t,P[2,:],color='purple',linestyle='--',label='3')

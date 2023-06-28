@@ -37,7 +37,8 @@ def bin_lifetime(life0,life1,bins,density=False):
     vals1, bins1 = np.histogram(life1,bins=bins,density=density)
     return vals0, vals1
 
-def lifetime4s(X,dt):
+def lifetime2s(X,dt):
+    """Gets lifetimes for lumped 2-state system"""
     nn,ns,nt = X.shape
     Xnew = np.zeros((nn,2,nt))
     Xnew[:,0,:] = X[:,0,:]
@@ -60,5 +61,20 @@ def lifetime4s(X,dt):
     times2 = np.array(times2)*dt
     return times1, times2
     
-    
+def lifetime4s(X,dt):
+    """Gets lifetimes for full 4-state system"""
+    ns,nt = X.shape
+    times = []
+    for i in range(ns):
+        times.append([])
+        counter = 0
+        for j in range(nt):
+            state = X[i,j]
+            if state == 0:
+                times[i].append(counter)
+                counter = 0
+            else:
+                counter += dt
+    return times
+            
 
