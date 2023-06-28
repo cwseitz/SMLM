@@ -5,7 +5,7 @@ import numpy as np
 import json
 
 prefixes = [
-'230324_Hela_ buffer_j646_50pm overnight_high power_no405_50ms_02-sub'
+'230516_Hela_j646_50pm overnight_High_10ms_10000frames_buffer_02-sub'
 ]
 
 with open('storm2d.json', 'r') as f:
@@ -16,8 +16,11 @@ with open('setup2d.json', 'r') as f:
 for prefix in prefixes:
     print("Processing " + prefix)
     path = config['analpath']+prefix+'/'+prefix+'_spots.csv'
-    spots = pd.read_csv(path)
+    spots = pd.read_csv(path).dropna()
+    spots = spots.loc[(spots['x_err'] < 0.05) & (spots['y_err'] < 0.05)]
+    print(spots)
     fig,ax=plt.subplots()
-    ax.scatter(spots['y'],spots['x'],color='cornflowerblue',marker='x',s=1)
+    ax.scatter(spots['x_mle'],spots['y_mle'],color='cornflowerblue',marker='x',s=1)
+    ax.set_aspect('equal')
     plt.show()
 
