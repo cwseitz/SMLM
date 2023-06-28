@@ -16,4 +16,5 @@ for prefix in prefixes:
     print("Processing " + prefix)
     pipe = PipelineMLE2D(config,setup,prefix)
     pipe.localize()
-
+    #pipe.scatter()
+    #plt.show()

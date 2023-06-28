@@ -10,7 +10,7 @@ from scipy.linalg import null_space
 class MasterSolver:
     def __init__(self,rates):
         self.num_states = 4
-        self.rates = rates #k12,k23,k34,k21,k31,k41
+        self.rates = rates
     def solve(self):
         transition_matrix = np.zeros((self.num_states,self.num_states))
         generator_matrix = np.zeros((self.num_states,self.num_states))

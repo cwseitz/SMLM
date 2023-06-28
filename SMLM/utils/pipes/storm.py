@@ -60,12 +60,17 @@ class PipelineMLE2D:
         
     def get_errors(self,theta,adu):
         hess = hessiso_auto2d(theta,adu,self.cmos_params)
-        errors = np.sqrt(np.diag(inv(hess)))
+        try:
+            errors = np.sqrt(np.diag(inv(hess)))
+        except:
+            errors = np.empty((4,))
+            errors[:] = np.nan
         return errors
         
     def fit(self,frame,spots,plot=False,patchw=3):
         lr = np.array([0.0001,0.0001,0.0,350.0])
         spots['x_mle'] = None; spots['y_mle'] = None; spots['N0'] = None;
+        spots['x_err'] = None; spots['y_err'] = None; spots['s_err'] = None; spots['N0_err'] = None;
         for i in spots.index:
             print(f'Fitting spot {i}')
             x0 = int(spots.at[i,'x'])
@@ -77,15 +82,26 @@ class PipelineMLE2D:
             opt = MLEOptimizer2DGrad(theta0,adu,self.setup)
             theta_mle, loglike = opt.optimize(iters=20,plot=False,lr=lr)
             error_mle = self.get_errors(theta_mle,adu)
-            print(error_mle)
             spots.at[i, 'x_mle'] = x0 + theta_mle[0] - patchw
             spots.at[i, 'y_mle'] = y0 + theta_mle[1] - patchw
             spots.at[i, 'N0'] = theta_mle[3]
+            spots.at[i, 'x_err'] = error_mle[0]
+            spots.at[i, 'y_err'] = error_mle[1]
+            spots.at[i, 's_err'] = error_mle[2]
+            spots.at[i, 'N0_err'] = error_mle[3]
         return spots
     def save(self,spotst):
         path = self.analpath+self.prefix+'/'+self.prefix+'_spots.csv'
         spotst.to_csv(path)
-
+        
+    def scatter(self):
+        path = self.analpath+self.prefix+'/'+self.prefix+'_spots.csv'
+        spots = pd.read_csv(path)
+        fig,ax=plt.subplots()
+        spots = spots.loc[spots['N0'] > 0]
+        spots = spots.loc[spots['frame'] < 50]
+        ax.scatter(spots['x_mle'],spots['y_mle'],s=1,marker='x',color='cornflowerblue')
+        
 class PipelineCNN2D:
     def __init__(self):
         pass
