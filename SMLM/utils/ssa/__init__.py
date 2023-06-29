@@ -1,5 +1,5 @@
 from .make_rate_grad import *
-from .master import *
+from .solvers import *
 from .rate_grad import *
 from .rate_jac import *
-from .ssa import *
+from .bin_ssa import *

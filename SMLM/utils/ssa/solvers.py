@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy.linalg import expm
 from SSA._SSA import photoswitch
-from .ssa import bin_ssa, lifetime4s, bin_lifetime
+from .bin_ssa import bin_ssa, bin_lifetime
 from scipy.integrate import odeint
 from scipy.linalg import null_space
 
@@ -57,3 +57,44 @@ class SSASolver:
         ax.plot(t,P[2,:],color='purple',linestyle='--',label='3')
         ax.plot(t,P[3,:],color='cyan',linestyle='--',label='4')
         ax.legend()
+        
+    def lifetime2s(self,X,dt):
+        """Gets lifetimes for lumped 2-state system"""
+        ns,nt = X.shape
+        Xnew = np.zeros((2,nt))
+        Xnew[0,:] = X[0,:]
+        Xnew[1,:] = np.sum(X[1:,:],axis=0)
+        X = Xnew
+        times = []
+        for i in range(2):
+            times.append(np.array([]))
+            counter = 0
+            for j in range(nt):
+                state = X[i,j]
+                if state == 0:
+                    times[i] = np.append(times[i],counter)
+                    counter = 0
+                else:
+                    counter += dt
+        for i in range(2):
+            times[i] = times[i][times[i] > 0]
+        return times
+
+        
+    def lifetime4s(self,X,dt):
+        """Gets lifetimes for full 4-state system"""
+        ns,nt = X.shape
+        times = []
+        for i in range(ns):
+            times.append(np.array([]))
+            counter = 0
+            for j in range(nt):
+                state = X[i,j]
+                if state == 0:
+                    times[i] = np.append(times[i],counter)
+                    counter = 0
+                else:
+                    counter += dt
+        for i in range(ns):
+            times[i] = times[i][times[i] > 0]
+        return times

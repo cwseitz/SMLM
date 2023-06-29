@@ -22,7 +22,7 @@ ROI = [(165,165),(165,245),(220,180)]
 path = config['analpath']+prefix+'/'+prefix
 spots = pd.read_csv(path+'-sub_spots.csv')
 spots = spots.dropna()
-spots = spots.loc[(spots['x_err'] < 0.05) & (spots['y_err'] < 0.05)]
+spots = spots.loc[(spots['x_err'] < 0.03) & (spots['y_err'] < 0.03)]
 
 path = config['datapath']+'/'+prefix
 mask = imread(path+'-mask.tif')
@@ -42,7 +42,7 @@ plt.show()
 # Save files for each ROI
 ##################################
 
-hw = 20
+hw = 15
 for i,(xr,yr) in enumerate(ROI):
     spotsROI = spots.loc[(spots['x'] > xr-hw) & (spots['x'] < xr+hw) & (spots['y'] > yr-hw) & (spots['y'] < yr+hw)]
     fig,ax=plt.subplots()
@@ -54,7 +54,7 @@ for i,(xr,yr) in enumerate(ROI):
     spotsROI = spotsROI[['x_mle','y_mle','sd']]
     spotsROI = spotsROI.rename(columns={'x_mle':'x','y_mle':'y'})
     Path(config['analpath']+prefix+f'/{i+1}').mkdir(parents=True, exist_ok=True)
-    spotsROI.to_csv(config['analpath']+prefix+f'/{i+1}/data.txt',index=False)
+    #spotsROI.to_csv(config['analpath']+prefix+f'/{i+1}/data.txt',index=False)
 
 
 

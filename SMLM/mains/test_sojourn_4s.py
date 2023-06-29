@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 dt = 0.00001
-T = 0.1 #seconds
+T = 0.5 #seconds
 
 k12 = 450 #s^-1
 k23 = 40
@@ -18,9 +18,12 @@ rates = np.array([k12,k23,k34,k21,k31,k41])
 solver = SSASolver(rates,nreps=nreps)
 X,P = solver.solve(T,dt)
 
+#times = solver.lifetime4s(X[0],dt)
+
 ############################
 # Sojourn time distributions
 ############################
+
 
 x1times = np.array([])
 x2times = np.array([])
@@ -29,22 +32,22 @@ x4times = np.array([])
 
 for n in range(nreps):
     Xn = X[n,:]
-    times = lifetime4s(Xn,dt)
-    
-    x1times_ = np.array(times[0])
-    x1times_ = x1times_[x1times_ > 0]
-    x2times_ = np.array(times[1])
-    x2times_ = x2times_[x2times_ > 0]
-    x3times_ = np.array(times[2])
-    x3times_ = x3times_[x3times_ > 0]
-    x4times_ = np.array(times[3])
-    x4times_ = x4times_[x4times_ > 0]
-    
-    x1times = np.concatenate([x1times,x1times_])
-    x2times = np.concatenate([x2times,x2times_])
-    x3times = np.concatenate([x3times,x3times_])
-    x4times = np.concatenate([x4times,x4times_])
+    times = solver.lifetime4s(Xn,dt)
+    #print(times)
+    #plt.plot(Xn[0])
+    #plt.plot(Xn[1])
+    #plt.plot(Xn[2])
+    #plt.plot(Xn[3])
+    #plt.show()
+    x1times = np.concatenate([x1times,times[0]])
+    x2times = np.concatenate([x2times,times[1]])
+    x3times = np.concatenate([x3times,times[2]])
+    x4times = np.concatenate([x4times,times[3]])
 
+
+############################
+# Plots
+############################
 
 t = np.linspace(0,0.05,1000) #seconds
 exp1 = np.exp(-k12 * t)
@@ -83,3 +86,4 @@ ax[2].legend()
 ax[3].legend()
 plt.tight_layout()
 plt.show()
+
