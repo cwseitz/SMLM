@@ -1,17 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy.linalg import expm
 from SSA._SSA import photoswitch
 from .bin_ssa import bin_ssa, bin_lifetime
 from scipy.integrate import odeint
-from scipy.linalg import null_space
-
+from scipy.linalg import null_space, expm
 
 class MasterSolver:
     def __init__(self,rates):
         self.num_states = 4
         self.rates = rates
-    def solve(self):
         transition_matrix = np.zeros((self.num_states,self.num_states))
         generator_matrix = np.zeros((self.num_states,self.num_states))
         transition_matrix[0,1] = self.rates[0]
@@ -24,6 +21,12 @@ class MasterSolver:
         for i in range(self.num_states):
             generator_matrix[i,i] = -np.sum(generator_matrix[i])
         self.generator = generator_matrix
+    def solve(self, time, P0):
+        P = np.zeros((self.num_states, len(time)))
+        for n, t in enumerate(time):
+            P[:,n] = P0.T @ expm(self.generator * t)
+        return P
+    def get_equilibrium(self):
         stationary_matrix = null_space(self.generator.T)
         stationary_vector = stationary_matrix[:, 0]
         stationary_vector /= np.sum(stationary_vector)
@@ -33,6 +36,7 @@ class SSASolver:
     def __init__(self,rates,nreps=1000):
         self.rates = rates
         self.nreps = nreps
+        
     def ssa(self,T,dt):
         print('Simulating photoswitching with SSA...')
         k12,k23,k34,k21,k31,k41 = self.rates
@@ -45,12 +49,16 @@ class SSASolver:
             state[n,1,:] = x2_binned
             state[n,2,:] = x3_binned
             state[n,3,:] = x4_binned
+            plt.plot(state[n,2,:])
+            plt.show()
         print('Done.')
         return state  
+        
     def solve(self,T,dt):
         X = self.ssa(T,dt)
         Xavg = np.mean(X,axis=0)
         return X, Xavg
+        
     def plot(self,ax,P,t):
         ax.plot(t,P[0,:],color='pink',linestyle='--',label='1')
         ax.plot(t,P[1,:],color='cornflowerblue',linestyle='--',label='2')

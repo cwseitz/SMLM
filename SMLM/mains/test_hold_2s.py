@@ -45,14 +45,16 @@ for n in range(nreps):
 ############################
 
 t = np.arange(0,0.1,dt)
-lam1 = k21 + k23; lam2 = k31 + k34; lam3 = k41
-A = lam2-lam3; B = lam3-lam1; C = lam1 - lam2
-D = (lam2-lam3)*lam2*lam3 + (lam3-lam1)*lam1*lam3 + (lam1-lam2)*lam1*lam2
-a1 = 1 + k23/(lam2-lam1) + (k23*k23*A)/D
-a2 = -k23/(lam2-lam1) + (k23*k23*B)/D
-a3 = (k23*k23*C)/D
-foff = a1*lam1*np.exp(-lam1*t) + a2*lam2*np.exp(-lam2*t) + a3*lam3*np.exp(-lam3*t)
 
+lam1 = k21 + k23; lam2 = k31 + k34; lam3 = k41
+#A = lam2-lam3; B = lam3-lam1; C = lam1 - lam2
+#D = (lam2-lam3)*lam2*lam3 + (lam3-lam1)*lam1*lam3 + (lam1-lam2)*lam1*lam2
+#a1 = 1 + k23/(lam2-lam1) + (k23*k23*A)/D
+#a2 = -k23/(lam2-lam1) + (k23*k23*B)/D
+#a3 = (k23*k23*C)/D
+a1 = 1; a2 = 1; a3 = 1
+foff = a1*lam1*np.exp(-lam1*t) + a2*lam2*np.exp(-lam2*t) + a3*lam3*np.exp(-lam3*t)
+foff /= np.sum(foff)
 
 ############################
 # Plots
@@ -60,11 +62,14 @@ foff = a1*lam1*np.exp(-lam1*t) + a2*lam2*np.exp(-lam2*t) + a3*lam3*np.exp(-lam3*
 
 bins = np.linspace(0,0.1,20)
 fig,ax=plt.subplots(1,2,figsize=(10,3))
-vals1, bins1 = np.histogram(x1times,bins=bins,density=True)
-vals2, bins2 = np.histogram(x2times,bins=bins,density=True)
+vals1, bins1 = np.histogram(x1times,bins=bins,density=False)
+vals2, bins2 = np.histogram(x2times,bins=bins,density=False)
+vals1 = vals1.astype(np.float64)
+vals2 = vals2.astype(np.float64)
+foff = foff*(vals2.max()/foff.max())
 ax[0].plot(bins1[:-1],vals1,color='cornflowerblue',label='SSA')
 ax[1].plot(bins2[:-1],vals2,color='cornflowerblue',label='SSA')
-ax[1].plot(t,foff,color='red',label='Theory')
+#ax[1].plot(t,foff,color='red',label='Theory')
 ax[0].set_xlabel('ON lifetime (sec)')
 ax[1].set_xlabel('OFF lifetime (sec)')
 ax[0].legend()
