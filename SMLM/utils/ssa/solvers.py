@@ -21,6 +21,12 @@ class MasterSolver:
         for i in range(self.num_states):
             generator_matrix[i,i] = -np.sum(generator_matrix[i])
         self.generator = generator_matrix
+    def current(self, time, P0):
+        J = np.zeros((self.num_states, len(time)))
+        for n, t in enumerate(time):
+            dGtilde = self.generator @ expm(self.generator * t)
+            J[:,n] = P0 @ dGtilde
+        return J
     def solve(self, time, P0):
         P = np.zeros((self.num_states, len(time)))
         for n, t in enumerate(time):
