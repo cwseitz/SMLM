@@ -1,5 +1,5 @@
 {
-	"datapath": "/research3/shared/cwseitz/Data/STORM/",
+	"datapath": "/research3/shared/cwseitz/Data/STORM/230516/",
 	"analpath": "/research3/shared/cwseitz/Analysis/STORM/",
 	"modelpath": "/research3/shared/cwseitz/Models/STORM2DModel/",
 	"threshold": 0.001

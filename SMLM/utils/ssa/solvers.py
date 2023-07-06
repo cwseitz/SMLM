@@ -55,8 +55,8 @@ class SSASolver:
             state[n,1,:] = x2_binned
             state[n,2,:] = x3_binned
             state[n,3,:] = x4_binned
-            plt.plot(state[n,2,:])
-            plt.show()
+            #plt.plot(state[n,3,:])
+            #plt.show()
         print('Done.')
         return state  
         
@@ -70,6 +70,7 @@ class SSASolver:
         ax.plot(t,P[1,:],color='cornflowerblue',linestyle='--',label='2')
         ax.plot(t,P[2,:],color='purple',linestyle='--',label='3')
         ax.plot(t,P[3,:],color='cyan',linestyle='--',label='4')
+        ax.plot(t,np.sum(P,axis=0),color='black',linestyle='--',label='Sum')
         ax.legend()
         
     def lifetime2s(self,X,dt):
