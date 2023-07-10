@@ -16,7 +16,7 @@ ROI = [(165,165),(165,245),(220,180)]
 for prefix in prefixes:
     print("Processing " + prefix)
     pipe = PipelineCluster2D(config,setup,prefix)
-    pipe.selectROI()
+    pipe.selectROI(max_err=0.5)
     #pipe.clustROI(ROI,plot=True)
 
 

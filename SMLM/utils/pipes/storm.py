@@ -137,7 +137,7 @@ class PipelineCluster2D:
         path = self.config['datapath']+'/'+self.prefix
         mask = tifffile.imread(path+'-mask.tif')
         path = self.config['analpath']+self.prefix+'/'+self.prefix
-        spots = pd.read_csv(path+'-sub_spots.csv')
+        spots = pd.read_csv(path+'_spots.csv')
         spots = spots.dropna()
         spots = spots.loc[(spots['x_err'] <= max_err) & (spots['y_err'] <= max_err)]
         spots['x'] = spots['x'].astype(int)
@@ -150,7 +150,7 @@ class PipelineCluster2D:
         path = self.config['datapath']+'/'+self.prefix
         mask = tifffile.imread(path+'-mask.tif')
         path = self.config['analpath']+self.prefix+'/'+self.prefix
-        spots = pd.read_csv(path+'-sub_spots.csv')
+        spots = pd.read_csv(path+'_spots.csv')
         spots = spots.dropna()
         spots = spots.loc[(spots['x_err'] <= max_err) & (spots['y_err'] <= max_err)]
         spots['x'] = spots['x'].astype(int)
@@ -168,7 +168,7 @@ class PipelineCluster2D:
         path = self.config['datapath']+'/'+self.prefix
         mask = tifffile.imread(path+'-mask.tif')
         path = self.config['analpath']+self.prefix+'/'+self.prefix
-        spots = pd.read_csv(path+'-sub_spots.csv')
+        spots = pd.read_csv(path+'_spots.csv')
         spots = spots.dropna()
         spots = spots.loc[(spots['x_err'] <= max_err) & (spots['y_err'] <= max_err)]
         spots['x'] = spots['x'].astype(int)
