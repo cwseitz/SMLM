@@ -2,10 +2,12 @@ import pandas as pd
 import numpy as np
 import tifffile
 import matplotlib.pyplot as plt
+import json
 from pathlib import Path
 from SMLM.utils.localize import LoGDetector
+from SMLM.cluster import VBGMM, LFilter
 from SMLM.utils import RLDeconvolver
-from SMLM.psf.psf2d import MLEOptimizer2DGrad, SGLDSampler2D, LSQOptimizer2D, hessiso_auto2d
+from SMLM.psf.psf2d import MLEOptimizer2DGrad, SGLDSampler2D, hessiso_auto2d
 from skimage.filters import gaussian
 from numpy.linalg import inv
 
@@ -16,18 +18,23 @@ class PipelineMLE2D:
         self.setup = setup
         self.analpath = config['analpath']
         self.datapath = config['datapath']
-        self.stack = tifffile.imread(self.datapath+self.prefix+'.tif')[:1000]
+        self.stack = tifffile.imread(self.datapath+self.prefix+'-sub.tif')
         Path(self.analpath+self.prefix).mkdir(parents=True, exist_ok=True)
         self.cmos_params = [setup['nx'],setup['ny'],
                             setup['eta'],setup['texp'],
                             np.load(setup['gain'])['arr_0'],
                             np.load(setup['offset'])['arr_0'],
-                            np.load(setup['var'])['arr_0']]  
-    def localize(self,plot=False):
+                            np.load(setup['var'])['arr_0']]
+        self.dump_config()
+    def dump_config(self):
+        with open(self.analpath+self.prefix+'/'+'config.json', 'w', encoding='utf-8') as f:
+            json.dump(self.config, f, ensure_ascii=False, indent=4)        
+    def localize(self,plot=False,tmax=None):
         path = self.analpath+self.prefix+'/'+self.prefix+'_spots.csv'
         file = Path(path)
         nt,nx,ny = self.stack.shape
         deconv = RLDeconvolver()
+        if tmax is not None: nt = tmax
         threshold = self.config['threshold']
         spotst = []
         if not file.exists():
@@ -36,7 +43,8 @@ class PipelineMLE2D:
                 framed = deconv.deconvolve(self.stack[n],iters=5)
                 log = LoGDetector(framed,threshold=threshold)
                 spots = log.detect() #image coordinates
-                log.show(); plt.show()
+                if plot:
+                    log.show(); plt.show()
                 spots = self.fit(framed,spots)
                 spots = spots.assign(frame=n)
                 spotst.append(spots)
@@ -102,10 +110,82 @@ class PipelineMLE2D:
         spots = spots.loc[spots['N0'] > 0]
         spots = spots.loc[spots['frame'] < 50]
         ax.scatter(spots['x_mle'],spots['y_mle'],s=1,marker='x',color='cornflowerblue')
+
+class PipelineCluster2D:
+    def __init__(self,config,setup,prefix):
+        self.config = config
+        self.prefix = prefix
+        self.setup = setup
+        self.analpath = config['analpath']
+        self.datapath = config['datapath']
+        self.stack = tifffile.imread(self.datapath+self.prefix+'.tif')[:1000]
+        Path(self.analpath+self.prefix).mkdir(parents=True, exist_ok=True)
+        self.cmos_params = [setup['nx'],setup['ny'],
+                            setup['eta'],setup['texp'],
+                            np.load(setup['gain'])['arr_0'],
+                            np.load(setup['offset'])['arr_0'],
+                            np.load(setup['var'])['arr_0']]  
+
+    def scatter(self,spots):
+        fig,ax=plt.subplots()
+        ax.invert_yaxis() #for top-left origin
+        ax.scatter(spots['y_mle'],spots['x_mle'],color='cornflowerblue',marker='x',s=1)
+        ax.set_aspect('equal')
+        plt.show()
+
+    def selectROI(self,max_err=0.03):
+        path = self.config['datapath']+'/'+self.prefix
+        mask = tifffile.imread(path+'-mask.tif')
+        path = self.config['analpath']+self.prefix+'/'+self.prefix
+        spots = pd.read_csv(path+'-sub_spots.csv')
+        spots = spots.dropna()
+        spots = spots.loc[(spots['x_err'] <= max_err) & (spots['y_err'] <= max_err)]
+        spots['x'] = spots['x'].astype(int)
+        spots['y'] = spots['y'].astype(int)
+        spots['mask_value'] = mask[spots['x'],spots['y']]
+        spots = spots[spots['mask_value'] > 0]
+        self.scatter(spots)
+         
+    def showROI(self,centers,hw=15,max_err=0.03):
+        path = self.config['datapath']+'/'+self.prefix
+        mask = tifffile.imread(path+'-mask.tif')
+        path = self.config['analpath']+self.prefix+'/'+self.prefix
+        spots = pd.read_csv(path+'-sub_spots.csv')
+        spots = spots.dropna()
+        spots = spots.loc[(spots['x_err'] <= max_err) & (spots['y_err'] <= max_err)]
+        spots['x'] = spots['x'].astype(int)
+        spots['y'] = spots['y'].astype(int)
+        spots['mask_value'] = mask[spots['x'],spots['y']]
+        spots = spots[spots['mask_value'] > 0]
+        for i,(xr,yr) in enumerate(centers):
+            spotsROI = spots.loc[(spots['x'] > xr-hw) & 
+                                 (spots['x'] < xr+hw) & 
+                                 (spots['y'] > yr-hw) & 
+                                 (spots['y'] < yr+hw)]
+            self.scatter(spotsROI)
+
+    def clustROI(self,centers,hw=15,max_err=0.03,r=1.0,T=1.0,plot=False):
+        path = self.config['datapath']+'/'+self.prefix
+        mask = tifffile.imread(path+'-mask.tif')
+        path = self.config['analpath']+self.prefix+'/'+self.prefix
+        spots = pd.read_csv(path+'-sub_spots.csv')
+        spots = spots.dropna()
+        spots = spots.loc[(spots['x_err'] <= max_err) & (spots['y_err'] <= max_err)]
+        spots['x'] = spots['x'].astype(int)
+        spots['y'] = spots['y'].astype(int)
+        spots['mask_value'] = mask[spots['x'],spots['y']]
+        spots = spots[spots['mask_value'] > 0]
         
-class PipelineCNN2D:
-    def __init__(self):
-        pass
+        for i,(xr,yr) in enumerate(centers):
+            spotsROI = spots.loc[(spots['x'] > xr-hw) & 
+                                 (spots['x'] < xr+hw) & 
+                                 (spots['y'] > yr-hw) & 
+                                 (spots['y'] < yr+hw)]
+            xlim = (spotsROI['x'].min(),spotsROI['x'].max())
+            ylim = (spotsROI['y'].min(),spotsROI['y'].max())
+            X = LFilter(spotsROI[['x_mle','y_mle']].values,xlim,ylim,r,T)
+            gmm = VBGMM(X)
+            gmm.fit(plot=plot)
 
 class PipelineLifetime:
     def __init__(self,config,prefix,dt=10,plot=True):
@@ -159,48 +239,5 @@ class PipelineLifetime:
         return off_times, on_times
         
         
-class PipelineLSQ2D:
-    def __init__(self,config,setup,prefix):
-        self.config = config
-        self.prefix = prefix
-        self.setup = setup
-        self.analpath = config['analpath']
-        self.datapath = config['datapath']
-        self.stack = tifffile.imread(self.datapath+self.prefix+'.tif')
-        Path(self.analpath+self.prefix).mkdir(parents=True, exist_ok=True)
-        self.cmos_params = [setup['nx'],setup['ny'],
-                            setup['eta'],setup['texp'],
-                            np.load(setup['gain'])['arr_0'],
-                            np.load(setup['offset'])['arr_0'],
-                            np.load(setup['var'])['arr_0']]  
-    def localize(self,plot=False):
-        path = self.analpath+self.prefix+'/'+self.prefix+'_spots.csv'
-        file = Path(path)
-        nt,nx,ny = self.stack.shape
-        deconv = RLDeconvolver()
-        threshold = self.config['threshold']
-        spotst = []
-        if not file.exists():
-            for n in range(nt):
-                print(f'Det in frame {n}')
-                framed = deconv.deconvolve(self.stack[n],iters=5)
-                log = LoGDetector(framed,threshold=threshold)
-                spots = log.detect()
-                log.show(); plt.show()
-                spots = spots.assign(frame=n)
-                spots = self.fit(framed,spots)
-                spotst.append(spots)
-            spotst = pd.concat(spotst)
-            self.save(spotst)
-            
-        else:
-            print('Spot files exist. Skipping')
-
-    def fit(self,adu,spots,plot=False):
-        opt = LSQOptimizer2D(adu,self.setup)
-        theta_opt = opt.optimize(spots,plot=True)
-    def save(self,spotst):
-        path = self.analpath+self.prefix+'/'+self.prefix+'_spots.csv'
-        spotst.to_csv(path)
 
 

@@ -1,11 +1,74 @@
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib import gridspec
 from sklearn.mixture import BayesianGaussianMixture
 
 
 class VBGMM:
     """Fit a Bayesian GMM with for a fixed number of clusters with variable concentration parameter"""
+    def __init__(self,X):
+        self.X = X
+
+    def plot_ellipses(self, ax, weights, means, covars):
+        for n in range(means.shape[0]):
+            eig_vals, eig_vecs = np.linalg.eigh(covars[n])
+            unit_eig_vec = eig_vecs[0] / np.linalg.norm(eig_vecs[0])
+            angle = np.arctan2(unit_eig_vec[1], unit_eig_vec[0])
+            angle = 180 * angle / np.pi
+            eig_vals = 2 * np.sqrt(2) * np.sqrt(eig_vals)
+            ell = mpl.patches.Ellipse(
+                means[n], eig_vals[0], eig_vals[1], angle=180 + angle, edgecolor="black"
+            )
+            ell.set_clip_box(ax.bbox)
+            ell.set_alpha(weights[n])
+            ell.set_facecolor("#56B4E9")
+            ax.add_artist(ell)
+
+
+    def plot_results(self,X,estimator):
+        fig,(ax1,ax2) = plt.subplots(1,2,figsize=(8,3))
+        ax1.scatter(X[:, 0], X[:, 1], s=2, marker="x", color='cornflowerblue', alpha=0.8)
+        ax1.set_xticks(())
+        ax1.set_yticks(())
+        self.plot_ellipses(ax1, estimator.weights_, estimator.means_, estimator.covariances_)
+
+        ax2.get_xaxis().set_tick_params(direction="out")
+        ax2.yaxis.grid(True, alpha=0.7)
+        for k, w in enumerate(estimator.weights_):
+            ax2.bar(
+                k,
+                w,
+                width=0.9,
+                color="#56B4E9",
+                zorder=3,
+                align="center",
+                edgecolor="black",
+            )
+        ax2.set_ylim(0.0, 1.1)
+        ax2.tick_params(axis="y", which="both", left=False, right=False, labelleft=False)
+        ax2.tick_params(axis="x", which="both", top=False)
+
+    def fit(self,concentration=1.0,plot=False):
+        random_state, n_components, n_features = 2, 12, 2
+        estimator = BayesianGaussianMixture(
+                    weight_concentration_prior_type="dirichlet_process",
+                    n_components=2 * n_components,
+                    reg_covar=0,
+                    init_params="random",
+                    max_iter=1500,
+                    mean_precision_prior=0.8,
+                    random_state=random_state,
+                )
+        estimator.weight_concentration_prior = concentration
+        estimator.fit(self.X)
+        if plot:
+            self.plot_results(self.X,estimator)
+            plt.show()
+
+class VBGMM_Test:
+    """Fit a Bayesian GMM with for a fixed number of clusters 
+       with variable concentration parameter"""
     def __init__(self,X):
         self.X = X
 
